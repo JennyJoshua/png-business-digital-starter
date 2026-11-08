@@ -10,7 +10,7 @@ const cat = (e) => JSON.parse(rd(`examples/${e}`, 'catalogue.json'));
 const out = Object.fromEntries(EX.map((e) => [e, path.join(tmp, e)]));
 for (const e of EX) build(`examples/${e}`, out[e]);
 
-test('1. all three example businesses build', () => { for (const e of EX) assert.ok(fs.existsSync(path.join(out[e], 'index.html'))); });
+test('1. all three example businesses build', () => { for (const e of EX) { assert.ok(fs.existsSync(path.join(out[e], 'index.html'))); assert.ok(fs.existsSync(path.join(out[e], 'search.html'))); } });
 
 test('4. each build shows its own name, colour, content, and none of the others', () => {
   for (const e of EX) {
@@ -123,9 +123,9 @@ test('validation: messages name the file and field', () => {
 
 test('demo data: examples and starter are marked, banner + noindex + sample labels; placeholders rejected for real businesses', () => {
   for (const e of EX) {
-    const html = rd(out[e], 'index.html'), lp = rd(out[e], `p/${cat(e).listings[0].listingId}.html`);
+    const html = rd(out[e], 'index.html'), search = rd(out[e], 'search.html'), lp = rd(out[e], `p/${cat(e).listings[0].listingId}.html`);
     assert.equal(cfg(e).demo, true);
-    for (const h of [html, lp]) { assert.ok(h.includes('DEMONSTRATION DATA')); assert.ok(h.includes('noindex')); assert.ok(h.includes('<title>[DEMO]')); }
+    for (const h of [html, search, lp]) { assert.ok(h.includes('DEMONSTRATION DATA')); assert.ok(h.includes('noindex')); assert.ok(h.includes('<title>[DEMO]')); }
     assert.ok(html.includes('Sample: '));
     assert.match(cfg(e).phone || '+67500000000', /^\+6750{5}/);
   }
@@ -179,7 +179,7 @@ test('empty catalogue and minimal config do not break the storefront', () => {
 
 test('accessibility (static): landmarks, headings, labels, alt text, link names on every generated page', () => {
   for (const e of EX) {
-    const files = ['index.html', ...cat(e).listings.map((l) => `p/${l.listingId}.html`)];
+    const files = ['index.html', 'search.html', ...cat(e).listings.map((l) => `p/${l.listingId}.html`)];
     for (const f of files) {
       const h = rd(out[e], f);
       assert.ok(h.includes('<html lang="en">') && h.includes('<main id="main"') && h.includes('class="skip"') && h.includes('<nav aria-label="Main">'), f);
@@ -191,4 +191,23 @@ test('accessibility (static): landmarks, headings, labels, alt text, link names 
     }
   }
   const css = rd('src', 'styles.css'); assert.ok(css.includes(':focus-visible')); assert.ok(css.includes('min-height:44px'));
+});
+
+test('public storefront: no Promotions page; search suggestions and full results are generated', () => {
+  for (const e of EX) {
+    const home = rd(out[e], 'index.html');
+    const results = rd(out[e], 'search.html');
+    assert.ok(!fs.existsSync(path.join(out[e], 'promo.html')));
+    assert.ok(!home.includes('>Promotions<'));
+    assert.ok(home.includes('id="suggestions"'));
+    assert.ok(home.includes('View all results'));
+    assert.ok(home.includes('assets/logo-fallback.svg'));
+    assert.ok(results.includes('id="results-q"'));
+    assert.ok(results.includes('id="results-cat"'));
+    assert.ok(results.includes('id="results-sort"'));
+    assert.ok(results.includes('Most relevant'));
+    assert.ok(results.includes('Price: low to high'));
+    assert.ok(results.includes('No matching products or services'));
+    assert.ok(results.includes(e === 'hardware-supplier' ? 'High-grade cement' : cfg(e).name));
+  }
 });
