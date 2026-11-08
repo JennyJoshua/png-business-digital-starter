@@ -1,7 +1,7 @@
 import fs from 'node:fs'; import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validate, withDefaults, toExport } from '../src/lib.mjs';
-import { renderHome, renderListing, renderPromo, logoSvg, placeholderSvg } from '../src/render.mjs';
+import { renderHome, renderListing, logoSvg, placeholderSvg } from '../src/render.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = (f) => JSON.parse(fs.readFileSync(f, 'utf8'));
@@ -39,7 +39,6 @@ export function build(srcDir, outDir, { validateOnly = false } = {}) {
     l.imageFile = copyAsset(l.image, path.join(out, 'assets/img', l.listingId), `catalogue.json › listings[${i}] (${l.listingId}).image`) || `assets/img/${l.listingId}-placeholder.svg`;
   });
   fs.writeFileSync(path.join(out, 'index.html'), renderHome(b, c));
-  fs.writeFileSync(path.join(out, 'promo.html'), renderPromo(b, c));
   for (const l of c.listings) fs.writeFileSync(path.join(out, 'p', `${l.listingId}.html`), renderListing(b, c, l));
   fs.writeFileSync(path.join(out, 'export/business-export.json'), JSON.stringify(toExport(business, catalogue), null, 2));
   return { out, listings: c.listings.length, warnings };
