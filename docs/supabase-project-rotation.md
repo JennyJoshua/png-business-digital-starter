@@ -6,8 +6,8 @@
 
 - The Free Plan permits **two active projects** across all organizations where the account is an Owner or Administrator.
 - Paused projects do not count toward the two-active-project quota.
-- A paused Free Plan project can be restored through the dashboard for **90 days** after it was paused.
-- After that 90-day window, one-click restoration is no longer available. Download the available database backup and Storage objects, then restore them to a new project or locally.
+- A paused Free Plan project can be restored through the dashboard for **1 year** after it was paused.
+- After that 1-year window, one-click restoration is no longer available. Download the available database backup and Storage objects, then restore them to a new project or locally.
 - Pausing makes the project's database and APIs unavailable. Applications that depend on it will stop working until restoration completes.
 - Pausing does not create an independent backup. Free Plan projects do not include automatic backups.
 
