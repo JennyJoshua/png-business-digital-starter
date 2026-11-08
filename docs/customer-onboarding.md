@@ -12,6 +12,6 @@
 
 The public storefront is for customers and has no dedicated Promotions section. Promotions management belongs in the authenticated private owner admin; promotions remain private in v1. The owner admin and public storefront share canonical business/catalogue data but have separate interfaces and access boundaries. See [owner admin and public search specification](owner-admin-and-search-spec.md).
 
-Public search is planned to show live suggestions while typing and a full results page with listing image, name, category, business name and price when supplied, plus category filters, sorting and a useful no-results state. These are requirements for a future iteration, not current feature claims.
+Public search is planned to show live suggestions while typing and a full results page with listing image, name, category, business name and price when supplied, plus category filters, sorting and a useful no-results state. The Phase 2A search experience is now implemented in the merged storefront. Owner admin and persistent editing remain future work.
 
 Alternatively, copy one of the three folders in `examples/` over `business/` and customise it.
