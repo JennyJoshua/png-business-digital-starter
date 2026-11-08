@@ -1,6 +1,6 @@
 # Owner Admin and Public Storefront — Product Design Decisions
 
-**Status:** Approved product direction. Phase 2A public storefront changes are implemented on the `phase-2a/public-storefront` review branch and await verification/review. The private owner-admin requirements remain unimplemented.
+**Status:** Phase 2A public storefront changes are merged into `main`. Phase 2B is defining the secure owner-admin backend; the admin and authentication are not yet implemented.
 
 ## 1. Product structure
 
@@ -67,4 +67,4 @@ The public homepage reserves a consistent logo area. Display the business logo w
 
 ## 7. Implementation boundary
 
-Implementation status: Phase 2A implements the public Promotions removal, homepage logo area/fallback, live listing/category suggestions and a full results page with category filtering, sorting and a clear-search action on a review branch. This does not implement secure authentication, a backend, owner dashboard, private Promotions management or logo upload. Those remain separate scoped phases and must not be exposed through public static files.
+Implementation status: Phase 2A is merged into `main` and implements public Promotions removal, homepage logo area/fallback, live listing/category suggestions and a full results page with category filtering, sorting and clear-search. This does not implement secure authentication, a backend, owner dashboard, private Promotions management or logo upload. Those remain separate scoped phases and must not be exposed through public static files.

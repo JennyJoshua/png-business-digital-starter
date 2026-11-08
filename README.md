@@ -1,12 +1,12 @@
 # PNG Business Digital Starter
 
-A reusable, mobile-first storefront template for PNG businesses. One master template; each customer gets their **own independent repository and deployment**. Phase 2A (public storefront improvements in progress), with the product direction recorded in [the owner admin and public search specification](docs/owner-admin-and-search-spec.md).
+A reusable, mobile-first storefront template for PNG businesses. One master template; each customer gets their **own independent repository and deployment**. Phase 2A complete; Phase 2B backend foundation in design, with the product direction recorded in [the owner admin and public search specification](docs/owner-admin-and-search-spec.md).
 
 ## What it does
 
 Reads two JSON files (`business.json`, `catalogue.json`) and generates a fast static website: homepage, about, live search suggestions, a dedicated searchable results page, category filters and sorting, one page per product or service, contact (call, WhatsApp, email), social links and share buttons. The public build does not generate a Promotions page or expose Promotions navigation. Branding (name, logo, colours, cover image) comes entirely from configuration. Invalid configuration stops the build with an error that names the file and field.
 
-**Approved product direction:** separate the public storefront and private owner-admin interfaces while sharing canonical business and catalogue data. The Phase 2A branch implements the public-facing Promotions removal, homepage logo area/fallback, live suggestions, and dedicated results with category filtering, sorting and a clear-search state. Secure owner authentication and the private admin remain future work and are not represented as implemented.
+**Approved product direction:** separate the public storefront and private owner-admin interfaces while sharing canonical business and catalogue data. Phase 2A is merged into `main`: public Promotions output was removed, homepage logo fallback and live suggestions were added, and the dedicated results page supports category filtering, sorting and clear-search. Phase 2B is now designing the secure owner-admin backend; no authentication or admin interface is available yet.
 
 ## Quick start (Node.js 18+, no packages to install)
 ```

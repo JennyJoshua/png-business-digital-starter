@@ -1,13 +1,19 @@
 # Changelog
 
-## Unreleased — Phase 2A public storefront (review branch)
+## Unreleased — Phase 2B backend foundation (design only)
+- Started a separate `phase-2b/owner-admin-backend-foundation` branch.
+- Added a backend architecture decision brief covering Supabase as the recommended candidate, shared multi-tenant deployment, data model, authorization boundaries, storage, onboarding and security tests.
+- No provider connection, database project, schema migration, credentials, authentication flow or admin UI has been created. Platform and onboarding decisions remain explicit approval gates.
+
+
+## Phase 2A — public storefront (merged into main)
 - Removed the Promotions navigation item and stopped generating a public `promo.html`; promotions remain owner-admin-only in v1.
 - Added a consistent homepage logo area using the configured logo or generated branded fallback.
 - Added live product/service and category suggestions beneath the homepage search field.
 - Added a dedicated full search-results page with listing images, names, category, business name and price where supplied.
 - Added category filtering, name/price sorting, result counts, clear-search control and an accessible no-results state.
 - Added regression tests for the public search experience and absence of public Promotions output.
-- Changes are on `phase-2a/public-storefront`; they are not merged or deployed yet.
+- PR #3 merged into `main`; the changes are part of the current codebase.
 
 ## Unreleased — owner admin and public storefront product decisions
 - Recorded the approved split between a public customer storefront and a private authenticated business-owner admin interface, sharing canonical business/catalogue data and design tokens.
