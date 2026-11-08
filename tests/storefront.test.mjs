@@ -210,6 +210,6 @@ test('public storefront: no Promotions page; search suggestions and full results
     assert.ok(results.includes('Most relevant'));
     assert.ok(results.includes('Price: low to high'));
     assert.ok(results.includes('No matching products or services'));
-    assert.ok(results.includes(e === 'hardware-supplier' ? 'High-grade cement' : cfg(e).name));
+    assert.ok(results.includes(cfg(e).name));
   }
 });
