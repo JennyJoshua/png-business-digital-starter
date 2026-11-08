@@ -65,7 +65,7 @@ The three example businesses, their phone numbers, emails and social links are p
 
 One stylesheet (`src/styles.css`) and one set of page templates (`src/render.mjs`). Branding changes colours, logo and cover image, so layout and navigation stay consistent for every business. The future admin interface should reuse the design tokens and shared components where appropriate while maintaining a distinct admin information architecture.
 
-## Version 1.2.0 (Phase 2A — review branch)
+## Phase 2A — public storefront review branch
 
 Public storefront improvements: remove Promotions from public output, add a homepage logo area with a generated fallback, live listing/category suggestions, a dedicated search results page, category filtering, sorting, a clear-search action and mobile-friendly controls. This branch is not yet merged or deployed.
 
