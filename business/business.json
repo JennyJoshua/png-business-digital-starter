@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0",
+  "businessId": "my-business",
+  "name": "Your Business Name (replace)",
+  "type": "general-retail",
+  "demo": true,
+  "tagline": "Replace this tagline.",
+  "description": "Replace this with a short description of your business. DEMONSTRATION DATA until you replace it.",
+  "brand": {
+    "primary": "#0b6e4f",
+    "accent": "#f2a900"
+  },
+  "phone": "+67500000000",
+  "whatsapp": "+67500000000",
+  "email": "you@example.com",
+  "location": {
+    "address": "Replace address",
+    "town": "Replace town",
+    "province": "Replace province"
+  },
+  "social": {}
+}

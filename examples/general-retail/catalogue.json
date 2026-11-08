@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "categories": [
+    { "id": "food", "name": "Food" },
+    { "id": "household", "name": "Household" },
+    { "id": "clothing", "name": "Clothing" }
+  ],
+  "listings": [
+    { "listingId": "rt-rice-10", "name": "Rice 10kg bag", "kind": "product", "categoryId": "food", "price": 49.9, "description": "Long grain white rice." },
+    { "listingId": "rt-tinfish", "name": "Tinned fish 425g", "kind": "product", "categoryId": "food", "price": 6.5, "description": "Mackerel in tomato sauce." },
+    { "listingId": "rt-soap", "name": "Laundry soap bar", "kind": "product", "categoryId": "household", "price": 3.2, "description": "Hand washing soap, 3 pack.", "priceNote": "per pack" },
+    { "listingId": "rt-bucket", "name": "Plastic bucket 10L", "kind": "product", "categoryId": "household", "price": 12, "description": "Strong bucket with handle." },
+    { "listingId": "rt-tshirt", "name": "Cotton T-shirt", "kind": "product", "categoryId": "clothing", "price": 25, "description": "Available in several sizes and colours." }
+  ]
+}

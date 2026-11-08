@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "categories": [
+    { "id": "install", "name": "Installation" },
+    { "id": "repair", "name": "Repairs" }
+  ],
+  "listings": [
+    { "listingId": "sv-house-wiring", "name": "House wiring", "kind": "service", "categoryId": "install", "price": null, "description": "Full wiring for new homes. Free quote on request." },
+    { "listingId": "sv-solar", "name": "Solar panel installation", "kind": "service", "categoryId": "install", "price": null, "description": "Supply and installation of small solar systems." },
+    { "listingId": "sv-fault", "name": "Fault finding & repair", "kind": "service", "categoryId": "repair", "price": 150, "description": "Call-out and diagnosis.", "priceNote": "call-out fee" },
+    { "listingId": "sv-lights", "name": "Light fitting", "kind": "service", "categoryId": "install", "price": 45, "description": "Per light installed.", "priceNote": "per light" }
+  ]
+}

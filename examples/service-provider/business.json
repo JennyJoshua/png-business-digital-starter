@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0",
+  "businessId": "demo-service-provider",
+  "name": "Demo Reliable Electrical Services",
+  "type": "service-provider",
+  "tagline": "Safe, licensed electrical work for homes and shops.",
+  "description": "A demonstration electrical contractor offering installation and repair. DEMONSTRATION DATA: this is not a real business.",
+  "brand": { "primary": "#6d28d9", "accent": "#22c55e" },
+  "phone": "+67500000003",
+  "email": "demo-hello@example.org",
+  "location": { "town": "Lae", "province": "Morobe" },
+  "social": { "Facebook": "https://facebook.com/example-demo-electrical" },
+  "demo": true
+}

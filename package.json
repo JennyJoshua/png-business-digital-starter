@@ -1,0 +1,16 @@
+{
+  "name": "png-business-digital-starter",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Master storefront template for PNG businesses (zero-dependency static site generator)",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "validate": "node scripts/build.mjs business dist --validate-only",
+    "build": "node scripts/build.mjs business dist",
+    "build:examples": "node scripts/build.mjs examples/hardware-supplier dist-examples/hardware-supplier && node scripts/build.mjs examples/general-retail dist-examples/general-retail && node scripts/build.mjs examples/service-provider dist-examples/service-provider",
+    "serve": "node scripts/serve.mjs dist",
+    "import": "node scripts/import.mjs",
+    "test": "node --test tests/storefront.test.mjs"
+  }
+}

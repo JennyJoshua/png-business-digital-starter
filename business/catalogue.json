@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0",
+  "categories": [
+    {
+      "id": "sample-category",
+      "name": "Sample category"
+    }
+  ],
+  "listings": [
+    {
+      "listingId": "sample-product-1",
+      "name": "Sample product 1 (replace)",
+      "kind": "product",
+      "categoryId": "sample-category",
+      "description": "Replace with your product description. Sample item, not for sale.",
+      "price": null
+    },
+    {
+      "listingId": "sample-service-1",
+      "name": "Sample service 1 (replace)",
+      "kind": "service",
+      "categoryId": "sample-category",
+      "description": "Replace with your service description. Sample item, not offered.",
+      "price": null
+    }
+  ]
+}

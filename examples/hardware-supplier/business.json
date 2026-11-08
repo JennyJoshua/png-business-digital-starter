@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "businessId": "demo-hardware-supplier",
+  "name": "Demo Gulf Hardware & Building Supplies",
+  "type": "hardware-supplier",
+  "tagline": "Quality building materials, delivered to your site.",
+  "description": "A demonstration hardware supplier selling roofing, timber, cement and tools. DEMONSTRATION DATA: this is not a real business.",
+  "brand": {
+    "primary": "#b4410f",
+    "accent": "#ffc400"
+  },
+  "phone": "+67500000001",
+  "whatsapp": "+67500000001",
+  "email": "demo-sales@example.com",
+  "location": {
+    "address": "Main Road",
+    "town": "Kerema",
+    "province": "Gulf"
+  },
+  "social": {
+    "Facebook": "https://facebook.com/example-demo-hardware"
+  },
+  "demo": true
+}

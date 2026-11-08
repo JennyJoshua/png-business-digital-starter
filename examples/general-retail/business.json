@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "businessId": "demo-general-retail",
+  "name": "Demo Wantok Trade Store",
+  "type": "general-retail",
+  "tagline": "Everyday goods for the whole family.",
+  "description": "A demonstration general store selling food, household and clothing items. DEMONSTRATION DATA: this is not a real business.",
+  "brand": { "primary": "#1d4ed8", "accent": "#f97316" },
+  "phone": "+67500000002",
+  "whatsapp": "+67500000002",
+  "location": { "town": "Port Moresby", "province": "National Capital District" },
+  "social": {
+    "Facebook": "https://facebook.com/example-demo-store",
+    "TikTok": "https://tiktok.com/@example-store"
+  },
+  "demo": true
+}

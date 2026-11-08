@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "1.0",
+  "categories": [
+    { "id": "roofing", "name": "Roofing" },
+    { "id": "timber", "name": "Timber" },
+    { "id": "cement", "name": "Cement & concrete" },
+    { "id": "tools", "name": "Tools" }
+  ],
+  "listings": [
+    { "listingId": "hw-iron-26", "name": "Corrugated iron 2.4m", "kind": "product", "categoryId": "roofing", "price": 78, "description": "Galvanised roofing iron, 2.4 metre sheet.", "priceNote": "per sheet" },
+    { "listingId": "hw-iron-30", "name": "Corrugated iron 3.0m", "kind": "product", "categoryId": "roofing", "price": 96, "description": "Galvanised roofing iron, 3.0 metre sheet.", "priceNote": "per sheet" },
+    { "listingId": "hw-timber-4x2", "name": "Treated timber 100x50mm", "kind": "product", "categoryId": "timber", "price": 24.5, "description": "Treated pine, suitable for house framing.", "priceNote": "per metre" },
+    { "listingId": "hw-cement-40", "name": "Cement 40kg bag", "kind": "product", "categoryId": "cement", "price": 52, "description": "General purpose Portland cement." },
+    { "listingId": "hw-hammer", "name": "Claw hammer 450g", "kind": "product", "categoryId": "tools", "price": 35, "description": "Steel head, fibreglass handle." },
+    { "listingId": "hw-delivery", "name": "Site delivery", "kind": "service", "categoryId": "tools", "price": null, "description": "Truck delivery of materials to your site. Price depends on distance." }
+  ]
+}
