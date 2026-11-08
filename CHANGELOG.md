@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Phase 2A public storefront (review branch)
+- Removed the Promotions navigation item and stopped generating a public `promo.html`; promotions remain owner-admin-only in v1.
+- Added a consistent homepage logo area using the configured logo or generated branded fallback.
+- Added live product/service and category suggestions beneath the homepage search field.
+- Added a dedicated full search-results page with listing images, names, category, business name and price where supplied.
+- Added category filtering, name/price sorting, result counts, clear-search control and an accessible no-results state.
+- Added regression tests for the public search experience and absence of public Promotions output.
+- Changes are on `phase-2a/public-storefront`; they are not merged or deployed yet.
+
 ## Unreleased — owner admin and public storefront product decisions
 - Recorded the approved split between a public customer storefront and a private authenticated business-owner admin interface, sharing canonical business/catalogue data and design tokens.
 - Specified that Promotions management is admin-only and promotions remain private in v1; no public Promotions page, navigation item, homepage banner or public placement.

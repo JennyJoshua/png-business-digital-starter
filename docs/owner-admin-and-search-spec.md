@@ -1,6 +1,6 @@
 # Owner Admin and Public Storefront — Product Design Decisions
 
-**Status:** Approved product direction; documentation only. The requirements below are not yet implemented.
+**Status:** Approved product direction. Phase 2A public storefront changes are implemented on the `phase-2a/public-storefront` review branch and await verification/review. The private owner-admin requirements remain unimplemented.
 
 ## 1. Product structure
 
@@ -30,7 +30,7 @@ Each customer continues to receive an independent business application/deploymen
 - Owner-only reads/writes must be protected by a trusted backend.
 - No privileged credentials or secrets may be shipped to public static files.
 - Public pages and exports contain only explicitly public/whitelisted fields.
-- The current static generator has no authentication or persistent admin editing; backend/auth design is a prerequisite to implementing the admin.
+- The current static generator has no authentication or persistent admin editing; backend/auth design is a prerequisite to implementing the admin. Phase 2A does not introduce an admin route or expose owner data.
 
 ## 4. Logo placeholder
 
@@ -67,4 +67,4 @@ The public homepage reserves a consistent logo area. Display the business logo w
 
 ## 7. Implementation boundary
 
-This approval records product direction and authorizes updating project documentation. It does not authorize or claim implementation of authentication, backend, admin dashboard, promotions management, logo upload or redesigned search. Those require a scoped implementation plan and testing before release.
+Implementation status: Phase 2A implements the public Promotions removal, homepage logo area/fallback, live listing/category suggestions and a full results page with category filtering, sorting and a clear-search action on a review branch. This does not implement secure authentication, a backend, owner dashboard, private Promotions management or logo upload. Those remain separate scoped phases and must not be exposed through public static files.

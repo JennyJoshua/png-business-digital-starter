@@ -15,7 +15,7 @@
 | Future API integration | Stable IDs, versioned export format, documented interface |
 | Simple maintenance | No runtime dependencies; builds quickly |
 
-**Current trade-offs:** catalogue edits require a rebuild and redeploy; there is no admin screen; search/filter runs in the browser over the rendered page (fine for hundreds of items, not tens of thousands). The current build's Promotions page is part of the existing public static output and is not a secure owner-management interface.
+**Current trade-offs:** catalogue edits require a rebuild and redeploy; there is no owner admin; search runs in the browser over the generated catalogue (appropriate for small-to-medium catalogues, not tens of thousands). The Phase 2A branch removes the public Promotions page and navigation, adds homepage logo fallback, live listing/category suggestions and a dedicated results page with category filtering, sorting and a clear-search action. These changes remain on a review branch until accepted.
 
 ## Approved next product architecture: public storefront + private owner admin
 
@@ -47,7 +47,7 @@ Search must work well on mobile and support:
 4. Category filters and useful sorting; clear empty state and clear-search action when there are no matches.
 5. Search results expose only public catalogue data.
 
-The current implementation has client-side catalogue search/filter; live suggestion dropdown and the defined full results experience are requirements for the next iteration, not a claim about existing functionality.
+The Phase 2A review branch implements client-side live listing/category suggestions and a dedicated full results page. Search remains static/client-side and has no pagination or server-side index. Search exposes only generated public catalogue fields.
 
 ## Data separation and marketplace readiness
 
@@ -64,6 +64,10 @@ The three example businesses, their phone numbers, emails and social links are p
 ## Design system
 
 One stylesheet (`src/styles.css`) and one set of page templates (`src/render.mjs`). Branding changes colours, logo and cover image, so layout and navigation stay consistent for every business. The future admin interface should reuse the design tokens and shared components where appropriate while maintaining a distinct admin information architecture.
+
+## Phase 2A — public storefront review branch
+
+Public storefront improvements: remove Promotions from public output, add a homepage logo area with a generated fallback, live listing/category suggestions, a dedicated search results page, category filtering, sorting, a clear-search action and mobile-friendly controls. This branch is not yet merged or deployed.
 
 ## Version 1.1.0
 
