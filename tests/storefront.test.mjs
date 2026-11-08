@@ -205,6 +205,8 @@ test('public storefront: no Promotions page; search suggestions and full results
     assert.ok(results.includes('id="results-q"'));
     assert.ok(results.includes('id="results-cat"'));
     assert.ok(results.includes('id="results-sort"'));
+    assert.ok(results.includes('id="clear-results"'));
+    assert.ok(home.includes('Category: '));
     assert.ok(results.includes('Most relevant'));
     assert.ok(results.includes('Price: low to high'));
     assert.ok(results.includes('No matching products or services'));
