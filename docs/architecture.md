@@ -2,7 +2,8 @@
 
 **Principle:** one master template, many independent business applications, one future marketplace connection.
 
-## Decision: zero-dependency static site generator (Node.js)
+## Current implementation: zero-dependency static site generator (Node.js)
+
 `scripts/build.mjs` reads a business folder and writes plain HTML/CSS/JS into `dist/`.
 
 | Need | How it is met |
@@ -14,19 +15,56 @@
 | Future API integration | Stable IDs, versioned export format, documented interface |
 | Simple maintenance | No runtime dependencies; builds quickly |
 
-**Trade-offs:** catalogue edits require a rebuild and redeploy; there is no admin screen; search/filter runs in the browser over the rendered page (fine for hundreds of items, not tens of thousands). A framework was rejected for v1 because nothing in scope needs server code. If a trusted backend is needed later (social publishing, marketplace sync), it can be added beside the static site without rewriting the templates.
+**Current trade-offs:** catalogue edits require a rebuild and redeploy; there is no admin screen; search/filter runs in the browser over the rendered page (fine for hundreds of items, not tens of thousands). The current build's Promotions page is part of the existing public static output and is not a secure owner-management interface.
 
-## Data separation
-Each deployment contains only its own `business/` folder. The build rejects asset paths that point outside that folder. No secrets exist or are needed. The export file is generated from the same config and contains only whitelisted fields.
+## Approved next product architecture: public storefront + private owner admin
 
-## Security measures actually implemented
-Business-supplied text is HTML-escaped; URLs must be http(s); colours must be `#RRGGBB`; IDs must be lowercase slugs; phone numbers are validated. Invalid configs fail the build with clear messages. There is no authentication, admin area or login in v1.
+The product will provide two distinct user experiences while sharing one business identity, catalogue, stable IDs and design system:
+
+- **Public storefront:** customer-facing and browseable without customer login. It shows business information, logo/placeholder, products/services, search, category navigation, listing details and contact/social links. It must not expose a dedicated Promotions section or owner-management controls.
+- **Owner admin:** a separate, private management interface for the authenticated business owner. It manages business profile and branding, logo, catalogue/listings, categories, promotions, contact/social details and data export.
+- **Shared data:** both interfaces use the same underlying business and listing records. The admin edits data; the public storefront renders only fields and content intended for public display.
+- **Deployment shape:** separate interfaces/routes and access boundaries in the same product/codebase are preferred initially. They do not need separate codebases. Each customer still receives an independent business deployment/instance as the service model requires.
+
+### Security boundary (mandatory)
+
+The owner admin is private by authentication and server-side authorization, not merely by hiding navigation or using an obscure URL. Owner-only operations and writes must be enforced by a trusted backend. Never embed admin credentials or privileged secrets in generated public files. The current static-only architecture cannot safely implement authenticated administration or persistent owner edits by itself; introducing an appropriate backend/authentication layer is a prerequisite. Public storefront pages and exports must never leak private admin data.
+
+### Promotions policy
+
+Promotions creation and management is owner-admin functionality. For v1, promotions remain private to the owner/admin and are not rendered as a dedicated public page, navigation item, homepage banner or public promotional placement. Any future public promotion placement requires a separately approved scope change and an explicit owner-controlled publication state.
+
+### Logo behaviour
+
+The public homepage must reserve a consistent logo area. If a business logo exists, display it; otherwise display a neutral, branded placeholder that preserves layout and clearly indicates the logo can be added by the owner. The owner admin will provide the future logo-management control.
+
+### Search experience
+
+Search must work well on mobile and support:
+1. Live suggestions while the customer types, matching product/service names and relevant categories.
+2. Selecting a suggestion opens its listing/category, while a “view all results” action opens the full results view.
+3. Full results show relevant listing image, name, category, business name and price when supplied.
+4. Category filters and useful sorting; clear empty state and clear-search action when there are no matches.
+5. Search results expose only public catalogue data.
+
+The current implementation has client-side catalogue search/filter; live suggestion dropdown and the defined full results experience are requirements for the next iteration, not a claim about existing functionality.
+
+## Data separation and marketplace readiness
+
+Each deployment contains only its own `business/` folder. The build rejects asset paths that point outside that folder. The export file is generated from the same config and contains only whitelisted fields. Stable business/listing IDs and a versioned export format remain the foundation for future marketplace onboarding, with owner consent and verified schema mapping required.
+
+## Security measures actually implemented in the current static version
+
+Business-supplied text is HTML-escaped; URLs must be http(s); colours must be `#RRGGBB`; IDs must be lowercase slugs; phone numbers are validated. Invalid configs fail the build with clear messages. There is currently no authentication, secure admin area or login.
 
 ## Demonstration-only items
+
 The three example businesses, their phone numbers, emails and social links are placeholders. Placeholder logos/images are generated SVGs.
 
 ## Design system
-One stylesheet (`src/styles.css`) and one set of page templates (`src/render.mjs`). Branding changes colours, logo and cover image, so layout and navigation stay consistent for every business.
+
+One stylesheet (`src/styles.css`) and one set of page templates (`src/render.mjs`). Branding changes colours, logo and cover image, so layout and navigation stay consistent for every business. The future admin interface should reuse the design tokens and shared components where appropriate while maintaining a distinct admin information architecture.
 
 ## Version 1.1.0
+
 Validation covers fields with `file › field` messages, brand-colour contrast, safe image paths and placeholder detection for non-demo businesses. Demo data is visibly marked. Exports use a field whitelist. Images have runtime fallbacks. Architecture and data model remain unchanged.
