@@ -1,6 +1,6 @@
 # PNG Business Digital Starter
 
-A reusable, mobile-first storefront template for PNG businesses. One master template; each customer gets their **own independent repository and deployment**. Version 1.2.0 (public storefront improvements in progress), with the product direction recorded in [the owner admin and public search specification](docs/owner-admin-and-search-spec.md).
+A reusable, mobile-first storefront template for PNG businesses. One master template; each customer gets their **own independent repository and deployment**. Phase 2A (public storefront improvements in progress), with the product direction recorded in [the owner admin and public search specification](docs/owner-admin-and-search-spec.md).
 
 ## What it does
 
