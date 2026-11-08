@@ -6,8 +6,8 @@
 
 - The Free Plan permits **two active projects** across all organizations where the account is an Owner or Administrator.
 - Paused projects do not count toward the two-active-project quota.
-- A paused Free Plan project can be restored through the dashboard for **1 year** after it was paused.
-- After that 1-year window, one-click restoration is no longer available. Download the available database backup and Storage objects, then restore them to a new project or locally.
+- A paused Free Plan project can be restored through the dashboard for **90 days** after it was paused.
+- After that 90-day window, one-click restoration is no longer available. Download the available database backup and Storage objects, then restore them to a new project or locally.
 - Pausing makes the project's database and APIs unavailable. Applications that depend on it will stop working until restoration completes.
 - Pausing does not create an independent backup. Free Plan projects do not include automatic backups.
 
@@ -25,9 +25,11 @@ Official references:
 6. Confirm it is paused before creating or restoring another project.
 7. When finished with the temporary project, pause it and restore the earlier project.
 8. Verify database connectivity, Auth, Storage and the dependent application after restoration.
-9. Track the one-year restore deadline for every paused project. Do not leave important projects paused near or beyond that deadline.
+9. Track the 90-day one-click restore deadline for every paused project. Do not treat paused projects as permanent archives.
 
 ## Project-specific policy for PNG Business Digital Starter
+
+- Supabase Free projects are for development and testing only while the site is unpublished. Before public launch or live customer/business use, plan and approve a suitable paid production setup and migration.
 
 - Keep its schema, migration files, RLS policies and automated tests in GitHub.
 - Do not apply migrations to a live Supabase project until the target project has been explicitly selected and the migration has been reviewed.
