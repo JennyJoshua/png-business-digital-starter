@@ -36,7 +36,7 @@ test('6/7. listing pages exist with contact + share + enquiry links', () => {
     if (b.whatsapp) assert.ok(html.includes(`https://wa.me/${b.whatsapp.replace('+', '')}?text=`));
   }
   assert.ok(!rd(out['service-provider'], 'p/sv-solar.html').includes('wa.me/')); // no whatsapp configured => no link
-  assert.ok(rd(out['hardware-supplier'], 'promo.html').includes('Share via WhatsApp'));
+  for (const e of EX) { assert.ok(!fs.existsSync(path.join(out[e], 'promo.html'))); assert.ok(!rd(out[e], 'index.html').includes('Promotions')); }
 });
 
 test('8. no example business content hardcoded in shared source', () => {
@@ -126,7 +126,7 @@ test('demo data: examples and starter are marked, banner + noindex + sample labe
     const html = rd(out[e], 'index.html'), lp = rd(out[e], `p/${cat(e).listings[0].listingId}.html`);
     assert.equal(cfg(e).demo, true);
     for (const h of [html, lp]) { assert.ok(h.includes('DEMONSTRATION DATA')); assert.ok(h.includes('noindex')); assert.ok(h.includes('<title>[DEMO]')); }
-    assert.ok(html.includes('Sample: ')); assert.ok(rd(out[e], 'promo.html').includes('[DEMO - not a real offer]'));
+    assert.ok(html.includes('Sample: '));
     assert.match(cfg(e).phone || '+67500000000', /^\+6750{5}/);
   }
   const starter = path.join(tmp, 'starter-out'); const r = build('business', starter);
@@ -174,12 +174,12 @@ test('image handling: real images are used, missing files fall back with a warni
 test('empty catalogue and minimal config do not break the storefront', () => {
   const src = path.join(tmp, 'empty'); fs.mkdirSync(src);
   fs.writeFileSync(path.join(src, 'business.json'), JSON.stringify({ businessId: 'empty-shop', name: 'Empty Shop', type: 'other' })); fs.writeFileSync(path.join(src, 'catalogue.json'), JSON.stringify({ listings: [] }));
-  const o = path.join(tmp, 'empty-out'); build(src, o); assert.ok(rd(o, 'index.html').includes('No products or services')); assert.ok(rd(o, 'promo.html').includes('Add listings'));
+  const o = path.join(tmp, 'empty-out'); build(src, o); assert.ok(rd(o, 'index.html').includes('No products or services')); assert.ok(!fs.existsSync(path.join(o, 'promo.html')));
 });
 
 test('accessibility (static): landmarks, headings, labels, alt text, link names on every generated page', () => {
   for (const e of EX) {
-    const files = ['index.html', 'promo.html', ...cat(e).listings.map((l) => `p/${l.listingId}.html`)];
+    const files = ['index.html', ...cat(e).listings.map((l) => `p/${l.listingId}.html`)];
     for (const f of files) {
       const h = rd(out[e], f);
       assert.ok(h.includes('<html lang="en">') && h.includes('<main id="main"') && h.includes('class="skip"') && h.includes('<nav aria-label="Main">'), f);
