@@ -121,6 +121,20 @@ A small trusted server-side function may be needed for operator-only onboarding/
 
 **Static storefront integration:** Phase 2B should not silently break the existing generated public pages. First establish a canonical backend contract and a controlled data adapter. During migration, the current JSON-to-static build remains the fallback until a test storefront proves it can read published backend data safely. Avoid maintaining two editable sources of truth indefinitely; define a one-way import from current JSON into canonical database records.
 
+### Supabase API and CLI implementation notes (verified 9 November 2026)
+
+- Supabase's Data API no longer automatically exposes newly created public-schema tables by default (the change is enforced across projects from 30 October 2026). Each required table must be deliberately exposed and granted only the required privileges. This is separate from RLS: exposure/grants determine whether a role can reach a table; RLS determines which rows it can access.
+- Enable RLS on every exposed table and use explicit grants. Do not rely on a default table-exposure setting.
+- A browser-based admin can use a Supabase publishable key plus the signed-in owner's Auth JWT, provided every exposed table is protected by carefully tested RLS. The publishable key is public by design; secret/service-role keys must never enter browser code, static assets or source maps.
+- Use the current Supabase CLI v3 workflow deliberately: v3 is local-first and asks before hosted changes. Do not copy old CLI v2 commands without checking the current command help and migration guide.
+- Keep hosted database changes out of this stage. Build and review schema/RLS locally or as version-controlled migration artifacts first, then test against a specifically selected development project after the owner approves the target.
+
+References:
+- https://supabase.com/changelog?types=breaking-change
+- https://supabase.com/docs/guides/database/secure-data
+- https://supabase.com/docs/guides/getting-started/api-keys
+- https://supabase.com/docs/guides/local-development/cli/getting-started
+
 ## 7. Suggested implementation sequence
 
 | Step | Deliverable | Exit condition |
