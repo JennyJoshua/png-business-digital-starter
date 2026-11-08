@@ -38,7 +38,7 @@ Consequences:
 1. Use one shared backend project for the Digital Starter pilot, not a new project for every business.
 2. The two-active-project quota applies across all Free Plan organizations where the account is an Owner or Administrator. Paused projects do not count, so projects can be rotated manually without deleting them.
 3. Pausing a project makes its database/API-backed applications unavailable. Never pause a live customer-facing project unless its downtime is explicitly acceptable.
-4. A paused Free Plan project can be restored with the dashboard's one-click restore for **1 year**, not one year. After 1 year, recovery requires downloading the available backup and restoring it to a project or locally; this is more involved and must not be treated as a routine rotation.
+4. A paused Free Plan project can be restored with the dashboard's one-click restore for **one year**. After one year, recovery requires downloading the available backup and restoring it to a project or locally; this is more involved and must not be treated as a routine rotation.
 5. Pausing is not a backup strategy. Keep independent database and Storage backups before any planned pause, especially because Free Plan projects do not include automatic backups.
 6. Avoid uploading large original photos; resize/compress images before upload and monitor storage/egress.
 7. If the service becomes business-critical, budget for paid hosting/backups before promising production availability.
