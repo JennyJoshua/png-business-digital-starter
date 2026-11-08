@@ -1,6 +1,6 @@
 # Phase 2B — Owner Admin Backend Architecture
 
-**Status:** Architecture proposal on `phase-2b/owner-admin-backend-foundation`. This is not a deployment or a final platform selection. No cloud resources, credentials, database schema, migrations or authentication settings have been changed.
+**Status:** Architecture baseline carried forward on `phase-2b/owner-admin-interface-foundation`, created from the merged `main` branch. This remains a development plan, not a deployment or a final platform selection. No cloud resources, credentials, database schema, migrations or authentication settings have been changed.
 
 **Purpose:** Establish a secure, affordable and marketplace-ready foundation for the private business-owner admin while preserving the current public static storefront and the one-repository/one-deployment customer delivery model.
 
@@ -145,4 +145,4 @@ The following are the minimum architecture decisions. The recommendation is show
 4. **Initial membership roles:** one owner only in v1 (recommended) vs owner plus staff roles from the beginning.
 5. **Existing project:** reuse an existing Supabase project only after confirming it is suitable and isolated from the PNG Materials Marketplace; otherwise create a separate Digital Starter project only with explicit approval.
 
-No database or cloud changes are authorized by this architecture proposal. Once these decisions are approved, implementation can begin with reviewed migrations and RLS tests on this branch.
+No database or cloud changes are authorized by this architecture proposal. Once the remaining provider, tenant, onboarding, role and project-selection decisions are confirmed, implementation can begin with reviewed migrations and RLS tests on `phase-2b/owner-admin-interface-foundation`.
