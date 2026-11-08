@@ -8,13 +8,6 @@ const waLink = (b, text) => b.whatsapp ? `https://wa.me/${digits(b.whatsapp).rep
 const price = (b, l) => (b.demo ? 'Sample: ' : '') + formatPrice(l, b.currency);
 const kindLabel = (b, l) => (b.demo ? 'Sample ' : '') + (l.kind === 'service' ? 'service' : 'product');
 
-export function promoText(b, l) {
-  const parts = [b.demo && '[DEMO - not a real offer]', `${l.name} at ${b.name}`, l.description, `Price: ${price(b, l)}`];
-  if (b.phone) parts.push(`Call ${b.phone}`);
-  if (b.whatsapp) parts.push(`WhatsApp ${b.whatsapp}`);
-  return parts.filter(Boolean).join('\n');
-}
-
 const errScript = `<script>document.addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='IMG'&&t.dataset.fallback&&!t.dataset.done){t.dataset.done=1;t.src=t.dataset.fallback}},true)</script>`;
 
 function shell(b, { title, body, depth = 0, script = '' }) {
@@ -30,7 +23,7 @@ function shell(b, { title, body, depth = 0, script = '' }) {
 <style>:root{--primary:${b.brand.primary};--accent:${b.brand.accent}</style>${errScript}</head><body>
 <a class="skip" href="#main">Skip to main content</a>${banner}
 <header class="top"><div class="wrap"><a class="brand" href="${r}index.html"><img src="${r}${b.logoFile}" data-fallback="${r}assets/logo-fallback.svg" width="38" height="38" alt=""><span>${esc(b.name)}</span></a>
-<nav aria-label="Main"><a href="${r}index.html#catalogue">Catalogue</a><a href="${r}promo.html">Promotions</a><a href="${r}index.html#contact">Contact</a></nav></div></header>
+<nav aria-label="Main"><a href="${r}index.html#catalogue">Catalogue</a><a href="${r}index.html#contact">Contact</a></nav></div></header>
 <main id="main" tabindex="-1">${body}</main>
 <footer id="contact"><div class="wrap"><strong>${esc(b.name)}</strong><br>${esc(loc)}<br>
 ${b.phone ? `<a href="tel:${esc(digits(b.phone))}">${esc(b.phone)}</a> · ` : ''}${b.whatsapp ? `<a href="${esc(waLink(b, 'Hello ' + b.name))}">WhatsApp</a> · ` : ''}${b.email ? `<a href="mailto:${esc(b.email)}">${esc(b.email)}</a>` : ''}
@@ -64,10 +57,4 @@ export function renderListing(b, c, l) {
 <button type="button" class="btn alt" id="share">Share this page</button></div><p class="notice">Listing ID: ${esc(l.listingId)}</p></div></div></div></section>`;
   const script = `<script>document.getElementById('share').addEventListener('click',function(){var d={title:document.title,url:location.href};if(navigator.share){navigator.share(d).catch(function(){})}else if(navigator.clipboard){navigator.clipboard.writeText(d.url);this.textContent='Link copied'}else{prompt('Copy this link',d.url)}})</script>`;
   return shell(b, { title: `${l.name} - ${b.name}`, body, depth: 1, script });
-}
-
-export function renderPromo(b, c) {
-  const items = c.listings.map((l) => { const t = promoText(b, l); return `<div class="panel"><h2>${esc(l.name)}</h2><pre class="promo">${esc(t)}</pre><div class="actions"><a class="btn" aria-label="Share via WhatsApp: ${esc(l.name)}" href="https://wa.me/?text=${encodeURIComponent(t)}">Share via WhatsApp</a><a class="btn alt" aria-label="Open page: ${esc(l.name)}" href="p/${esc(l.listingId)}.html">Open page</a></div></div>`; }).join('');
-  const body = `<section><div class="wrap"><h1>Promotional content</h1><p class="notice">Ready-made text generated from the catalogue. Copy and paste it into your own social media posts. This version does not publish to social platforms for you.</p>${items || '<p class="empty">Add listings to generate promotional text.</p>'}</div></section>`;
-  return shell(b, { title: `Promotions - ${b.name}`, body });
 }
