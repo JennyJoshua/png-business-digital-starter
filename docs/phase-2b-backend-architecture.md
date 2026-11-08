@@ -10,7 +10,7 @@
 - The current app is a zero-runtime-dependency Node.js static generator. It has no login, server, database or persistent owner editing.
 - Each customer receives an independent storefront repository and deployment.
 - The long-term data contract must preserve stable business/listing identifiers and allow owner-approved onboarding into PNG Materials Marketplace without re-entering all data.
-- The preferred operating constraint is no paid services during the pilot and reuse of existing accounts where possible.
+- The preferred operating constraint is no paid services during development and reuse of existing accounts where possible. These Free Plan projects are development/testing environments only; before public launch or live customer use, plan and approve a suitable paid production setup.
 
 ## 2. Recommended direction
 
@@ -38,10 +38,10 @@ Consequences:
 1. Use one shared backend project for the Digital Starter pilot, not a new project for every business.
 2. The two-active-project quota applies across all Free Plan organizations where the account is an Owner or Administrator. Paused projects do not count, so projects can be rotated manually without deleting them.
 3. Pausing a project makes its database/API-backed applications unavailable. Never pause a live customer-facing project unless its downtime is explicitly acceptable.
-4. A paused Free Plan project can be restored with the dashboard's one-click restore for **one year**. After one year, recovery requires downloading the available backup and restoring it to a project or locally; this is more involved and must not be treated as a routine rotation.
+4. A paused Free Plan project can be restored through the dashboard's one-click restore for **90 days**. After 90 days, the one-click restore window has expired; recovery requires downloading the available database backup and Storage objects, then restoring them to a project or locally. Treat this as a recovery path, not a routine rotation.
 5. Pausing is not a backup strategy. Keep independent database and Storage backups before any planned pause, especially because Free Plan projects do not include automatic backups.
 6. Avoid uploading large original photos; resize/compress images before upload and monitor storage/egress.
-7. If the service becomes business-critical, budget for paid hosting/backups before promising production availability.
+7. Keep Free Plan projects limited to development and testing. Before publishing a site or using it for live customer/business operations, plan and approve paid production hosting/backend capacity, backups and operational requirements. Do not assume a development project is production-ready.
 8. Do not create a new Supabase project until the user confirms the intended organization and explicitly approves the project creation.
 
 Sources:
