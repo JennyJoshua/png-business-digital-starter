@@ -25,7 +25,7 @@ Official references:
 6. Confirm it is paused before creating or restoring another project.
 7. When finished with the temporary project, pause it and restore the earlier project.
 8. Verify database connectivity, Auth, Storage and the dependent application after restoration.
-9. Track the 90-day restore deadline for every paused project. Do not leave important projects paused near or beyond that deadline.
+9. Track the one-year restore deadline for every paused project. Do not leave important projects paused near or beyond that deadline.
 
 ## Project-specific policy for PNG Business Digital Starter
 
