@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — owner admin and public storefront product decisions
+- Recorded the approved split between a public customer storefront and a private authenticated business-owner admin interface, sharing canonical business/catalogue data and design tokens.
+- Specified that Promotions management is admin-only and promotions remain private in v1; no public Promotions page, navigation item, homepage banner or public placement.
+- Specified a homepage logo area with a neutral placeholder when no logo is configured.
+- Specified mobile live search suggestions, selectable matches, a full results view, category filters/sorting and a useful no-results state.
+- Documented that secure owner administration requires authentication, server-side authorization and a trusted backend; these are future requirements, not current static-site capabilities.
+
 ## 1.1.0 — quality-assurance corrections
 - Marked all demo data; added banner, noindex, [DEMO] titles and Sample price labels.
 - Added placeholder phone/email checks and validation for supported business types, field lengths, IDs, colours, contacts, categories, prices and image paths.
