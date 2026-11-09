@@ -31,6 +31,8 @@ function switchView(name) {
 function fillProfile() {
   if (!currentBusiness) return;
   const f = $("#profile-form");
+  $("#branding-form").elements.brand_primary.value = currentBusiness.brand_primary || "#0b6e4f";
+  $("#branding-form").elements.brand_accent.value = currentBusiness.brand_accent || "#f2a900";
   for (const n of ["name","business_type","tagline","description","phone","whatsapp","email","website_url","address_line","town","province","brand_primary","brand_accent"]) {
     if (f.elements[n]) f.elements[n].value = currentBusiness[n] ?? "";
   }
