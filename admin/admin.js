@@ -162,6 +162,8 @@ document.addEventListener("click",async e=>{
   if(r){if(r.error){message(appMessage,friendlyError(r.error));return;}await refreshAll();message(appMessage,"Changes saved.",true);}
 });
 
+const inviteFlow = new URLSearchParams(location.search).get("type")==="invite" || location.hash.includes("type=invite");
+if(inviteFlow) recoveryFlow=true;
 supabase.auth.onAuthStateChange((event,session)=>{
   if(event==="PASSWORD_RECOVERY"){
     recoveryFlow=true;
