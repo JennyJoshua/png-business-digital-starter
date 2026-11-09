@@ -1,6 +1,6 @@
 # Phase 2B — Owner Admin Backend Architecture
 
-**Status:** Core multi-tenant database foundation implemented and verified on the approved development project. Owner authentication, admin UI, Storage upload policies and public storefront integration remain future steps on `phase-2b/owner-admin-interface-foundation`.
+**Status:** Core multi-tenant database foundation and API view layer implemented and verified on the approved development project. Owner authentication, admin UI, Storage upload policies and public storefront integration remain future steps on `phase-2b/owner-admin-interface-foundation`.
 
 **Purpose:** Provide a secure, affordable and marketplace-ready foundation for the private business-owner admin while preserving the existing static public storefront.
 
@@ -46,7 +46,11 @@ Three explicit allowlist views are provided in `public`:
 
 All are created with `security_invoker = true`, so underlying table privileges and RLS are applied to the requesting role. The views include only public business/catalogue fields and published rows belonging to published businesses. Promotions, memberships, private settings and asset metadata are not included.
 
-The underlying application tables are in `app_private`. Before connecting any client, verify in Supabase Data API settings that `app_private` is not in the exposed schema list; expose only the intended API schema(s). The database role grants and RLS policies are not a substitute for verifying the Data API schema allowlist.
+### Owner API contract
+
+An `admin_api` schema contains seven security-invoker views corresponding to the seven application tables. The views are granted only to `authenticated`; the schema has no `anon` usage grant. These views are simple/updatable where appropriate, but underlying column grants and RLS remain authoritative. Memberships are read-only to owners.
+
+**Important configuration gate:** `admin_api` has been created but has not yet been added to the Supabase Data API exposed-schema list. Before the browser admin is connected, expose `admin_api` and `public` only as required, and keep `app_private` unexposed. Verify the final exposed-schema list in the Supabase dashboard. The schema/grant design does not replace this configuration check.
 
 ### Data rules
 
@@ -82,10 +86,11 @@ Business creation, owner invitation and membership provisioning remain operator-
 ## 5. Implemented database safeguards
 
 - Seven application tables in `app_private`; RLS enabled on all seven.
-- 22 RLS policies across public reads, owner reads/writes and private data.
+- 22 policies across public reads, owner reads/writes and private data.
 - Membership checks use protected `business_memberships` rows and `auth.uid()`, not user metadata.
 - Least-privilege grants separate public reads, owner writes and operator provisioning.
-- The public views are security-invoker views.
+- Public and owner API views use `security_invoker = true`.
+- `admin_api` is not granted to anonymous users; membership view is not insertable/updateable by authenticated owners due to grants.
 - No SECURITY DEFINER function was added.
 - Foreign keys used by ownership lookups have indexes; remaining unused-index advisor messages are informational on a new empty schema.
 
@@ -103,7 +108,7 @@ Storage bucket/object policies are not yet created. Logo and listing image uploa
 
 ## 7. Supabase project and Free-plan operations
 
-The Digital Starter development project is separate from other projects. PNG Alert was selected by the user for temporary pausing to free the Free-plan active-project slot; its pause operation was still processing at the last status check. No other existing project was changed.
+The Digital Starter development project is separate from other projects. PNG Alert was selected by the user for temporary pausing to free the Free-plan active-project slot; the pause operation was still processing at the last status check. No other existing project was changed.
 
 Supabase Free projects are for development/testing only. A paused Free project has a 90-day one-click restore window; pause is not a backup. Maintain independent database and Storage backups before planned pauses. Before public launch, approve a paid production arrangement and migration/recovery plan.
 
@@ -113,6 +118,7 @@ Version-controlled SQL migrations:
 
 - `supabase/migrations/20261109000651_phase_2b_owner_admin_core.sql`
 - `supabase/migrations/20261109000726_phase_2b_public_read_and_fk_indexes.sql`
+- `supabase/migrations/20261109001259_phase_2b_admin_api_views.sql`
 
 Applied migration versions on the development project match these files. The SQL schema has been checked against the live project after application.
 
