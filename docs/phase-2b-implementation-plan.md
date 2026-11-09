@@ -2,64 +2,69 @@
 
 **Working branch:** `phase-2b/owner-admin-interface-foundation`  
 **Baseline:** latest merged `main`  
-**Status:** implementation planning and safe groundwork; no backend project or admin UI has been deployed.
+**Status:** backend data model and first RLS foundation implemented on the approved development project; authentication flow and admin UI are not yet implemented.
 
 ## Product outcome
 
-Deliver a private, mobile-first owner-admin experience alongside the existing public storefront. Both surfaces use the same canonical business and catalogue data. The public storefront remains browseable without customer accounts and must never expose private owner data or Promotions.
+Deliver a private, mobile-first owner-admin experience alongside the public storefront. Both surfaces use the same canonical business and catalogue data. Public visitors browse without accounts and never see private owner data or Promotions.
 
-## Working assumptions
+## Approved architecture decisions
 
-These follow the architecture recommendation already recorded; they remain subject to owner confirmation before hosted setup:
+- **Backend:** Supabase.
+- **Tenant topology:** one shared multi-tenant Supabase project for Digital Starter businesses; not one project per customer.
+- **Project:** `PNG Business Digital Starter Dev`, reference `rwcwvqlgyckfdrglsbfg`, Sydney region (`ap-southeast-2`), Free development project.
+- **Isolation:** separate from the PNG Materials Marketplace and PNG Alert projects.
+- **Onboarding:** invitation-only owner provisioning for the pilot; no public self-registration as a business owner.
+- **Initial role:** owner only in v1; the schema supports a future role expansion without trusting editable user metadata.
+- **Production:** this Free project is for development/testing only. No production deployment or live customer data until a separately approved production plan exists.
 
-- Supabase is the preferred development backend candidate.
-- One shared multi-tenant backend is used for the Digital Starter product, rather than one project per business.
-- A separate Digital Starter backend is preferred over reusing the PNG Materials Marketplace database.
-- The initial pilot uses invitation-only owner onboarding and one owner role; staff roles can follow later.
-- Free Supabase projects are for development/testing only. Production hosting, database capacity, backups and launch readiness are planned separately before public launch.
+## Work sequence and status
 
-## Work sequence
+### 2B.1 — Architecture decisions
+<badge>Complete</badge>
+Provider, tenant model, project, owner onboarding direction and initial role are recorded above.
 
-### 2B.1 — Lock architecture decisions
-- Confirm the backend provider, tenant topology, owner onboarding, initial roles and the specific development project.
-- No project creation, pause/resume, credential handling or hosted configuration changes before explicit approval.
+### 2B.2 — Data contract
+<badge>Complete — v1 core</badge>
+- Canonical business, membership, category, listing, private settings, Promotions and asset metadata tables.
+- Internal UUID keys plus stable external business/category/listing identifiers.
+- Explicit publication states and public-field allowlists.
+- Public storefront views: `storefront_businesses`, `storefront_categories`, `storefront_listings`.
+- Promotions and owner-only records are excluded from public views.
 
-### 2B.2 — Build the data contract
-- Define canonical business, membership, category, listing, private settings, promotions and asset metadata entities.
-- Use internal UUID primary keys plus stable external business/listing identifiers.
-- Specify public-field allowlists and publication states.
-- Version the schema and marketplace export contract.
+### 2B.3 — Database security
+<badge>Core verified</badge>
+- RLS enabled on all seven application tables in `app_private`.
+- 22 policies; ownership is checked through protected membership records.
+- No client insert/update/delete privileges on membership records; owners cannot change stable business/listing identifiers through normal table grants.
+- UPDATE policies use both `USING` and `WITH CHECK`.
+- Anonymous and two-tenant/two-owner checks passed using temporary transaction-scoped fixtures; all fixtures were rolled back.
+- Supabase Security Advisor returned no findings.
+- See [Phase 2B security verification](phase-2b-security-verification.md).
 
-### 2B.3 — Implement database security
-- Enable RLS on every exposed table.
-- Use least-privilege grants and separate SELECT/INSERT/UPDATE/DELETE policies.
-- UPDATE policies must include both USING and WITH CHECK.
-- Membership checks must use protected database records, not editable user metadata.
-- Test two businesses and two owners for cross-tenant read/write isolation, role escalation, guessed IDs, unpublished data and private Promotions.
-- Check Supabase Security Advisor after the test schema is deployed to the approved development project.
+### 2B.4 — Owner authentication
+**Next**
+- Configure and verify invitation-only owner access.
+- Implement sign-in, sign-out, session expiry and password recovery.
+- Provision the first owner only after an actual business and owner email are approved.
+- Never expose a secret/service-role key in browser code.
 
-### 2B.4 — Build owner authentication
-- Owner sign-in, sign-out, session expiry and password recovery.
-- Invitation-only owner provisioning for the initial pilot.
-- No public owner self-registration unless separately approved.
-- No privileged secret key in browser code.
-
-### 2B.5 — Build the private admin interface
+### 2B.5 — Private admin interface
 - Mobile-first dashboard and navigation.
 - Business profile and branding/logo management.
 - Categories and product/service listing management.
 - Private Promotions management.
 - Contact/social details and owner data export.
-- Clear loading, empty, validation and error states.
+- Loading, empty, validation and error states.
 
-### 2B.6 — Connect the public storefront
-- Public reads only published allowlisted fields.
+### 2B.6 — Public storefront integration
+- Read only published, allowlisted fields through the public views.
 - No Promotions page, navigation, banner or public placement.
-- Preserve the existing static storefront as a safe fallback until integration tests pass.
+- Preserve the current static storefront as a fallback until integration tests pass.
 
-### 2B.7 — Verify and prepare review
-- Automated tests, RLS tests, accessibility checks and mobile browser QA.
-- Documentation, migration notes and owner handover.
+### 2B.7 — Review and handover
+- Automated tests, RLS regression tests, accessibility checks and mobile browser QA.
+- Migration notes and owner handover.
 - Open a review PR; do not merge to `main` or deploy production without owner approval.
 
 ## Admin interface navigation target
@@ -74,7 +79,7 @@ These follow the architecture recommendation already recorded; they remain subje
 8. Data export
 9. Account and sign out
 
-## Security test matrix
+## Security acceptance matrix
 
 | Scenario | Expected result |
 |---|---|
@@ -84,12 +89,14 @@ These follow the architecture recommendation already recorded; they remain subje
 | Owner changes own membership role | Denied |
 | Public visitor queries draft listing | No row returned |
 | Public visitor queries Promotions | No access |
-| Public visitor queries published business/listing | Only allowlisted public fields returned |
+| Public visitor queries published business/listing | Only allowlisted fields returned |
 | Owner session expires | Protected actions stop; user is asked to sign in again |
 
-## Current blockers before hosted integration
+## Remaining implementation gates
 
-1. Confirm the exact Supabase development project to use (or explicitly approve creating a separate Digital Starter project).
-2. Confirm that the recommended Supabase provider, shared multi-tenant topology, invitation-only onboarding and one-owner v1 are accepted.
+1. Verify the project's exposed Data API schema list keeps `app_private` unexposed before client integration.
+2. Configure and verify Auth invitation-only settings; no owner account has been provisioned.
+3. Implement and test the admin application and public data adapter.
+4. Set up Storage bucket and object policies only when logo/listing image upload is implemented.
 
-Until those are settled, implementation can proceed on version-controlled design, tests and interface work, but no remote database changes or credentials will be used.
+The current database foundation is development-only. No production deployment, live customer onboarding, or merge to `main` is authorized by this phase.
