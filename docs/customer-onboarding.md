@@ -1,17 +1,45 @@
 # Customer onboarding
 
-1. Copy the template into a new customer repository. One repository per customer.
-2. Edit `business/business.json` (name, permanent `businessId`, type, colours, contacts). Remove `"demo": true` only after replacing all sample data.
-3. Add the customer's logo and optional cover image inside `business/`, then reference relative paths. Until a logo is supplied, the public homepage should use the approved neutral logo placeholder (planned; not yet implemented).
-4. Edit `business/catalogue.json`; give each listing a permanent `listingId`. Add photos inside `business/images/` and reference them by relative path. Keep images optimised for mobile data.
-5. Run `npm run validate`, `npm run build`, and `npm run serve`. Review the storefront in a mobile and desktop browser.
-6. Deploy the contents of `dist/` using the deployment guide.
-7. Hand over repository and domain access as agreed. Explain that catalogue edits currently require changing JSON and rebuilding. The secure owner admin and persistent editing workflow are future work and must not be represented as available until implemented and tested.
+## Target instance model
 
-## Approved future owner/public experience
+Every customer receives an independent single-store application:
+- One GitHub repository under the platform operator's account.
+- One independent hosting/deployment.
+- One independent Supabase project under the platform operator's account.
+- One store in that Supabase project.
+- One or more administrators who manage that same store.
 
-The public storefront is for customers and has no dedicated Promotions section. Promotions management belongs in the authenticated private owner admin; promotions remain private in v1. The owner admin and public storefront share canonical business/catalogue data but have separate interfaces and access boundaries. See [owner admin and public search specification](owner-admin-and-search-spec.md).
+The platform operator maintains the Supabase project, database schema, migrations, security configuration, backups and recovery. Store administrators maintain business content and branding; they do not receive database-owner credentials or Supabase project access.
 
-Public search is planned to show live suggestions while typing and a full results page with listing image, name, category, business name and price when supplied, plus category filters, sorting and a useful no-results state. The Phase 2A search experience is now implemented in the merged storefront. Owner admin and persistent editing remain future work.
+## Current static storefront preparation
 
-Alternatively, copy one of the three folders in `examples/` over `business/` and customise it.
+1. Copy the template into a new customer repository.
+2. Edit `business/business.json` (name, permanent `businessId`, type, colours and contacts). Remove `"demo": true` only after replacing all sample data.
+3. Add the customer's logo and optional cover image inside `business/`, then reference relative paths.
+4. Edit `business/catalogue.json`; assign each listing a permanent `listingId`. Add optimised images inside `business/images/`.
+5. Run `npm run validate`, `npm run build` and `npm run serve`. Review the storefront on mobile and desktop.
+6. Review all public content and confirm the business owner approves it.
+
+## Backend provisioning — not yet ready for customer use
+
+Before enabling the admin interface, the platform operator must:
+1. Create a separate Supabase project for this business under the operator's account.
+2. Record the repository, hosting site and Supabase project association in the operator register.
+3. Apply the reviewed single-store baseline migrations.
+4. Configure Auth, Data API exposure, grants and RLS.
+5. Provision the store profile and initial administrator through the trusted operator process.
+6. Test anonymous public REST access, admin access, multiple administrators and denial cases.
+7. Configure and test backup/restore and the instance upgrade process.
+8. Connect the public storefront and admin interface to this project's URL and publishable key only.
+
+The existing Phase 2B branch still contains an earlier shared multi-tenant prototype. Do not use it to invite real owners, store customer data or launch a customer instance until the single-store redesign and testing are complete.
+
+## Store administrator handover
+
+Store administrators may manage the store's business profile, brand identity, logo/assets, contact details, categories, products/services, catalogue and permitted private promotions. They must not be asked to run SQL, manage migrations, configure Supabase, maintain backups or handle privileged keys.
+
+The platform operator retains technical maintenance responsibility. Explain clearly which business-content tasks the administrator can perform and how to request technical support.
+
+## Future marketplace connection
+
+The starter remains independent. Stable store/category/listing identifiers and versioned export/import formats will support a later owner-consented connection to PNG Materials Marketplace. Do not create central marketplace profiles, social/directory features or cross-business accounts during this onboarding phase.
