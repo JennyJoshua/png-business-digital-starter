@@ -54,6 +54,7 @@
           <nav>
             <button class="nav-item active" data-view="overview">Overview</button>
             <button class="nav-item" data-view="profile">Business profile</button>
+            <button class="nav-item" data-view="branding">Branding</button>
             <button class="nav-item" data-view="categories">Categories</button>
             <button class="nav-item" data-view="catalogue">Catalogue</button>
             <button class="nav-item" data-view="promotions">Promotions <span class="private-tag">Private</span></button>
@@ -77,7 +78,7 @@
 
           <section class="view" id="view-profile">
             <p class="eyebrow">BUSINESS DETAILS</p><h1>Business profile</h1>
-            <p class="muted">Keep your public business details accurate. Only approved public fields are shown on your storefront.</p>
+            <p class="muted">Keep your business details accurate. Database changes are saved now; public storefront synchronisation is a later Phase 2B step.</p>
             <form id="profile-form" class="panel form-grid">
               <label>Business name<input name="name" maxlength="120" required></label>
               <label>Business type<select name="business_type"><option value="hardware_supplier">Hardware supplier</option><option value="general_retail">General retail</option><option value="service_provider">Service provider</option><option value="other">Other</option></select></label>
@@ -92,6 +93,17 @@
               <label>Province<input name="province" maxlength="100"></label>
               <div class="wide"><button class="primary" type="submit">Save business profile</button></div>
             </form>
+          </section>
+
+          <section class="view" id="view-branding">
+            <p class="eyebrow">VISUAL IDENTITY</p><h1>Branding</h1>
+            <p class="muted">Choose your business colours. Logo and cover-image uploads will be enabled after secure Storage policies are implemented.</p>
+            <form id="branding-form" class="panel form-grid compact">
+              <label>Primary brand colour<input name="brand_primary" type="color" value="#0b6e4f"></label>
+              <label>Accent colour<input name="brand_accent" type="color" value="#f2a900"></label>
+              <div class="wide"><button class="primary" type="submit">Save brand colours</button></div>
+            </form>
+            <p class="notice">Your public storefront is still using its current static configuration. Live storefront synchronisation is a later Phase 2B step.</p>
           </section>
 
           <section class="view" id="view-categories">
