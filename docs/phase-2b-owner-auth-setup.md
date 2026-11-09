@@ -3,7 +3,7 @@
 **Project:** PNG Business Digital Starter Dev  
 **Project ref:** `rwcwvqlgyckfdrglsbfg`  
 **Dashboard:** https://supabase.com/dashboard/project/rwcwvqlgyckfdrglsbfg  
-**Status:** Application code is prepared. Dashboard configuration and first real owner provisioning are intentionally not completed.
+**Status:** Application code is prepared. User confirmed the Data API schema list was saved; Auth configuration, URL configuration, invitation delivery and first real owner provisioning remain outstanding.
 
 ## 1. Data API schema exposure
 
@@ -15,7 +15,7 @@ The browser admin calls the schema explicitly with `supabase.schema('admin_api')
 
 **Do not expose `app_private`.** It contains the underlying application tables. The owner API views in `admin_api` use `security_invoker = true`; their underlying table privileges and RLS remain in force.
 
-After saving, verify the list again. Do not expose other schemas merely to make an API error disappear.
+The user has confirmed saving this configuration. Before connecting the browser app, verify the exposed-schema list and test actual REST requests. Do not expose other schemas merely to make an API error disappear.
 
 ## 2. Auth general settings
 
@@ -54,7 +54,7 @@ Reference: [Supabase Auth users and invitations](https://supabase.com/docs/guide
 
 No real owner account or business record has been created yet. When the user approves the actual business details and owner email, use this controlled sequence:
 
-1. Verify Data API exposure and Auth settings above.
+1. Verify the saved Data API exposure through actual REST requests and verify Auth settings above.
 2. Verify invitation email delivery to the intended recipient.
 3. Send the owner invitation from Authentication → Users.
 4. Retrieve the invited Auth user's UUID from the dashboard.
