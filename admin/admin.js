@@ -8,7 +8,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 
 const $ = (s) => document.querySelector(s);
 const authPanel = $("#auth-panel"), appPanel = $("#app-panel"), authMessage = $("#auth-message"), appMessage = $("#app-message");
-let currentUser = null, currentBusiness = null, currentBusinessId = null, categories = [], listings = [], promotions = [];
+let currentUser = null, currentBusiness = null, currentBusinessId = null, categories = [], listings = [], promotions = [], recoveryFlow = false;
 const esc = (v = "") => String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const slug = (v) => String(v).normalize("NFKD").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,70);
 const message = (el, value, ok = false) => { el.textContent = value || ""; el.classList.toggle("success", ok); };
@@ -59,7 +59,8 @@ async function loadBusiness() {
   updateCounts();
   fillProfile();
   message(appMessage, "");
-  showApp();
+  if (recoveryFlow) { authPanel.hidden = false; appPanel.hidden = true; showAuth("password"); }
+  else showApp();
 }
 async function loadCategories() {
   const r = await supabase.from("categories").select("id,category_id,name,slug,description,sort_order,publication_status").eq("business_id",currentBusinessId).order("sort_order").order("name");
@@ -110,6 +111,7 @@ $("#password-form").addEventListener("submit",async e=>{
   if(p!==confirm){message(authMessage,"The passwords do not match.");return;}
   const r=await supabase.auth.updateUser({password:p});
   if(r.error){message(authMessage,friendlyError(r.error));return;}
+  recoveryFlow=false;
   message(authMessage,"Password updated. You can now continue to the admin.",true);
   if(currentUser){try{await loadBusiness();}catch(err){message(authMessage,friendlyError(err));}}
   else showAuth("signin");
@@ -128,14 +130,16 @@ $("#profile-form").addEventListener("submit",async e=>{
 });
 $("#category-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget,name=value(f,"name"),description=value(f,"description");
-  const payload={business_id:currentBusinessId,category_id:slug(name),name,slug:slug(name),description:description||null,sort_order:categories.length,publication_status:"draft"};
+  const categorySlug=slug(name); if(!categorySlug){message(appMessage,"Use letters or numbers in the category name.");return;}
+  const payload={business_id:currentBusinessId,category_id:categorySlug,name,slug:categorySlug,description:description||null,sort_order:categories.length,publication_status:"draft"};
   const r=await supabase.from("categories").insert(payload);
   if(r.error){message(appMessage,friendlyError(r.error));return;}
   f.reset();await refreshAll();message(appMessage,"Category added as a draft. Publish it only after reviewing it.",true);
 });
 $("#listing-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget,name=value(f,"name"),price=value(f,"price");
-  const payload={business_id:currentBusinessId,listing_id:slug(name),category_id:value(f,"category_id")||null,kind:value(f,"kind"),name,slug:slug(name),description:value(f,"description")||null,price:price===""?null:Number(price),currency:"PGK",availability_status:value(f,"availability_status")||null,publication_status:"draft",sort_order:listings.length};
+  const listingSlug=slug(name); if(!listingSlug){message(appMessage,"Use letters or numbers in the listing name.");return;}
+  const payload={business_id:currentBusinessId,listing_id:listingSlug,category_id:value(f,"category_id")||null,kind:value(f,"kind"),name,slug:listingSlug,description:value(f,"description")||null,price:price===""?null:Number(price),currency:"PGK",availability_status:value(f,"availability_status")||null,publication_status:"draft",sort_order:listings.length};
   if(price!==""&&(!Number.isFinite(payload.price)||payload.price<0)){message(appMessage,"Enter a valid non-negative price.");return;}
   const r=await supabase.from("listings").insert(payload);
   if(r.error){message(appMessage,friendlyError(r.error));return;}
@@ -158,21 +162,13 @@ document.addEventListener("click",async e=>{
   if(r){if(r.error){message(appMessage,friendlyError(r.error));return;}await refreshAll();message(appMessage,"Changes saved.",true);}
 });
 
-supabase.auth.onAuthStateChange(async(event,session)=>{
-  if(event==="PASSWORD_RECOVERY" || new URLSearchParams(location.search).get("mode")==="password"){
-    showAuth("password");message(authMessage,"Choose a new password for your account.",true);return;
+supabase.auth.onAuthStateChange((event,session)=>{
+  if(event==="PASSWORD_RECOVERY"){
+    recoveryFlow=true;
+    currentUser=session?.user||null;
+    authPanel.hidden=false;appPanel.hidden=true;
+    showAuth("password");
+    message(authMessage,"Choose a new password for your account.",true);
   }
-  if(event==="SIGNED_OUT"){currentUser=null;currentBusiness=null;showSignIn();return;}
-  if(session && event==="SIGNED_IN" && !currentBusiness){
-    currentUser=session.user;
-    try{await loadBusiness();$("#signed-in-email").textContent=currentUser.email||"";$("#account-email").textContent=currentUser.email||"";}
-    catch(err){await supabase.auth.signOut();message(authMessage,friendlyError(err));}
-  }
+  if(event==="SIGNED_OUT"){currentUser=null;currentBusiness=null;currentBusinessId=null;showSignIn();}
 });
-const initial=await supabase.auth.getSession();
-if(initial.data.session){
-  currentUser=initial.data.session.user;
-  try{await loadBusiness();$("#signed-in-email").textContent=currentUser.email||"";$("#account-email").textContent=currentUser.email||"";}
-  catch(err){await supabase.auth.signOut();message(authMessage,friendlyError(err));}
-}
-if(new URLSearchParams(location.search).get("mode")==="password")showAuth("password");
