@@ -460,6 +460,8 @@ as
 select
   listing.listing_uid,
   category.category_uid,
+  category.name as category_name,
+  category.slug as category_slug,
   listing.kind,
   listing.name,
   listing.slug,
@@ -537,8 +539,8 @@ grant insert, update on admin_api.categories to authenticated;
 grant insert, update on admin_api.listings to authenticated;
 grant insert, update on admin_api.promotions to authenticated;
 
--- 10. Legacy tables remain inaccessible to browser roles because the schema-wide
--- revocation above ran before the new-table grants. No additional grants follow.
+-- 10. The earlier schema-wide revocation removed browser privileges from every
+-- retained legacy table. Only the explicit new-table grants above are restored.
 grant select (
   singleton_key, store_uid, name, slug, business_type, tagline, description,
   phone, whatsapp, public_email, website_url, address_line, town, province,
