@@ -13,8 +13,9 @@
 - Three explicit public views: `public.storefront_businesses`, `public.storefront_categories`, `public.storefront_listings`.
 - Seven security-invoker views under `admin_api`, granted only to authenticated users.
 - Public and admin views use explicit column lists and invoke underlying table privileges/RLS.
+- Anonymous `SELECT` is granted only on the three public-read base tables (`businesses`, `categories`, `listings`); their existing RLS policies restrict rows to published records belonging to published businesses. Promotions, memberships, private settings and asset metadata remain inaccessible to `anon`.
 - Promotions, memberships, private settings and asset metadata are not included in public views.
-- The `admin_api` schema is not yet enabled in the Data API exposed-schema list; do not connect the admin browser client until it is deliberately exposed. Keep `app_private` unexposed.
+- User confirmed that `admin_api` was added to the Data API exposed-schema list in the Supabase Dashboard and saved, with `public` retained and `app_private` left unexposed. The setting has not yet been independently verified through a browser REST request; that is still required.
 - No SECURITY DEFINER function was created.
 - Membership writes are not granted to authenticated users; stable external identifiers are not updateable through normal owner grants.
 
@@ -53,6 +54,7 @@ Temporary fixtures used two test Auth users and two business tenants. The SQL ch
 - `20261109000651` — `phase_2b_owner_admin_core`
 - `20261109000726` — `phase_2b_public_read_and_fk_indexes`
 - `20261109001259` — `phase_2b_admin_api_views`
+- `20261109002919` — `phase_2b_public_storefront_read_grants`
 
 All three SQL files are version-controlled under `supabase/migrations/`.
 
@@ -76,4 +78,4 @@ All three SQL files are version-controlled under `supabase/migrations/`.
 - Promotions are managed only in the authenticated owner area and remain absent from public storefront output.
 - CI passed JavaScript syntax validation, automated tests, starter-data validation and demonstration builds.
 
-**Not yet end-to-end verified:** Supabase Data API exposure for `admin_api`, Auth signup/anonymous settings, invitation/recovery email delivery, actual browser sign-in and owner CRUD through the REST API. These remain go-live blockers; see [Owner Auth setup](phase-2b-owner-auth-setup.md).
+**Not yet end-to-end verified:** Data API exposure through actual REST requests, Auth signup/anonymous settings, invitation/recovery email delivery, actual browser sign-in and owner CRUD through the REST API. These remain go-live blockers; see [Owner Auth setup](phase-2b-owner-auth-setup.md).
