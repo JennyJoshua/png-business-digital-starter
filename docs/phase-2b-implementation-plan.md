@@ -1,8 +1,8 @@
 # Phase 2B — Implementation Plan
 
-**Current design branch:** `phase-2c/data-contract-and-operator-workflow`  
+**Current design branch:** `phase-2d/schema-and-security-design`  
 **Architecture:** one independent app/repository/deployment/Supabase project per store.  
-**Status:** architecture, logical data contract and operator lifecycle design drafted; code and database still reflect an earlier shared multi-tenant prototype.
+**Status:** architecture, data contract, operator workflow, detailed single-store schema/security design and security test plan drafted; code and database still reflect an earlier shared multi-tenant prototype.
 
 ## Product outcome
 
@@ -37,15 +37,12 @@ See [single-store-data-contract.md](single-store-data-contract.md). It defines t
 See [operator-provisioning-and-maintenance.md](operator-provisioning-and-maintenance.md). It defines the private instance register, approval gates, clean-project provisioning, migration/upgrade lifecycle, admin lifecycle, backup/restore, incident recovery and instance states. Backup capabilities and costs must be verified against the actual provider plan before promises are made.
 
 ### 2B.3A — Design review and decisions
-- Resolve the open data-contract decisions before drafting executable SQL.
-- Confirm the first-version administrator permission model.
-- Confirm public contact fields and asset visibility/upload policy.
-- Confirm export packaging and retention/deletion rules.
-- Confirm the operator's invitation/revocation and backup/restore approach.
-- Record approval of the detailed schema and operational acceptance criteria before implementation.
+<badge>Recommendations drafted — owner review required</badge>
+The detailed schema design proposes a singleton store profile, one active-admin membership class, operator-controlled invitations, database-checked revocation, archive-not-delete content lifecycle, public/admin security-invoker views, and URL-based images for v1 with Storage deferred. Review the open choices in the data contract and the detailed design before implementation.
 
 ### 2B.4 — Database schema and security implementation
-- Create a clean baseline migration for the single-store model.
+<badge>Design complete — implementation not started</badge>
+See [Phase 2D database schema and security design](phase-2d-database-schema-security-design.md) and [database security test plan](phase-2d-database-security-test-plan.md). The next implementation step, after design approval, is to create a clean baseline migration for the single-store model.
 - Enable RLS on every exposed table and use least-privilege grants.
 - Enforce the one-store invariant.
 - Support multiple active admin memberships for that one store.
