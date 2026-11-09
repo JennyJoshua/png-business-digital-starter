@@ -3,7 +3,7 @@
 **Updated:** 2026-11-09  
 **Working branch:** `phase-2e/single-store-database-foundation`  
 **Base:** `phase-2d/schema-and-security-design`  
-**Current branch comparison:** six commits ahead, zero behind at the time of the latest comparison.
+**Current branch comparison:** nine commits ahead, zero behind (verified 2026-11-09).
 
 ## Completed in this branch
 
@@ -24,7 +24,7 @@ The SQL in `supabase/drafts/` is a **draft**, not an active Supabase migration. 
 
 The attempt to start an isolated CLI environment was blocked because the available sandbox account has no compute credit remaining. Therefore the Supabase CLI could not be run to generate a timestamped migration or validate the SQL against a PostgreSQL test instance.
 
-The draft has received a manual review and one identified invalid column grant was corrected. Manual review is not equivalent to PostgreSQL execution or security testing. The draft must still be checked by the Supabase CLI/PostgreSQL before it can be promoted into `supabase/migrations/`.
+The draft has received a manual review: one invalid column grant was corrected, and a redundant duplicate grant block was removed. These are source-level clean-ups only. Manual review is not equivalent to PostgreSQL execution or security testing. The draft must still be checked by the Supabase CLI/PostgreSQL before it can be promoted into `supabase/migrations/`.
 
 ## Live Supabase status
 
