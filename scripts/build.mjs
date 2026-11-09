@@ -19,8 +19,10 @@ export function build(srcDir, outDir, { validateOnly = false } = {}) {
   const b = withDefaults(business);
   const out = path.resolve(outDir);
   fs.rmSync(out, { recursive: true, force: true });
-  for (const d of ['assets/img', 'p', 'export']) fs.mkdirSync(path.join(out, d), { recursive: true });
+  for (const d of ['assets/img', 'p', 'export', 'admin']) fs.mkdirSync(path.join(out, d), { recursive: true });
   fs.copyFileSync(path.join(root, 'src/styles.css'), path.join(out, 'assets/styles.css'));
+  // Owner admin is a separate static application; all data access remains protected by Supabase Auth + RLS.
+  fs.cpSync(path.join(root, 'admin'), path.join(out, 'admin'), { recursive: true });
   // Only files inside the business folder can be referenced (paths are also validated in src/lib.mjs).
   // Returns the output file name (relative to the site root) or null; a missing file produces a warning and a generated fallback.
   const copyAsset = (rel, destBase, label) => {
