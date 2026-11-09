@@ -36,7 +36,7 @@ npm run validate
 npm test
 ```
 
-See [architecture](docs/architecture.md), [customer onboarding](docs/customer-onboarding.md), the [single-store data contract](docs/single-store-data-contract.md), the [operator provisioning and maintenance workflow](docs/operator-provisioning-and-maintenance.md), and the [Phase 2B implementation plan](docs/phase-2b-implementation-plan.md) for the current design and implementation gates.
+See [architecture](docs/architecture.md), [customer onboarding](docs/customer-onboarding.md), the [single-store data contract](docs/single-store-data-contract.md), the [operator provisioning and maintenance workflow](docs/operator-provisioning-and-maintenance.md), and the [Phase 2B implementation plan](docs/phase-2b-implementation-plan.md), [Phase 2D database schema/security design](docs/phase-2d-database-schema-security-design.md), and [Phase 2D security test plan](docs/phase-2d-database-security-test-plan.md) for the current design and implementation gates.
 
 ## Database operations
 
@@ -50,6 +50,6 @@ Business, category and listing records must have stable portable identifiers and
 
 ## Not yet implemented / not yet approved
 
-The independent per-store Supabase provisioning and migration workflow, redesigned single-store schema and policies, multiple-admin workflow, operator maintenance workflow, real Auth/REST/browser integration tests, image storage policies, live public-storefront data adapter, backups/recovery procedure and marketplace export/consent flow remain work items. Payments, carts, customer accounts and the future central marketplace are outside the current scope.
+The independent per-store Supabase provisioning and migration workflow, redesigned single-store schema and policies, multiple-admin workflow, operator maintenance workflow, real Auth/REST/browser integration tests, image storage policies, live public-storefront data adapter, backups/recovery procedure and marketplace export/consent flow remain work items. The Phase 2D schema/security documents are design specifications only; no new single-store migration has been applied. Payments, carts, customer accounts and the future central marketplace are outside the current scope.
 
 No production deployment, merge to `main`, customer onboarding or destructive database change is authorised by this documentation revision.
