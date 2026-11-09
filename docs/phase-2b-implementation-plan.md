@@ -2,7 +2,7 @@
 
 **Working branch:** `phase-2b/owner-admin-interface-foundation`  
 **Baseline:** latest merged `main`  
-**Status:** multi-tenant database schema, RLS foundation, public storefront views and authenticated admin API views implemented on the approved development project. Auth configuration and UI remain outstanding.
+**Status:** multi-tenant database schema, RLS foundation, public storefront views, authenticated admin API views and initial private owner-admin app implemented on the approved development branch. Dashboard Auth/Data API configuration and real owner provisioning remain outstanding.
 
 ## Product outcome
 
@@ -43,21 +43,20 @@ Provider, tenant model, project, owner onboarding direction and initial role are
 - Supabase Security Advisor returned no findings.
 - See [Phase 2B security verification](phase-2b-security-verification.md).
 
-### 2B.4 — Owner authentication
-**Next**
-- Verify the project's Data API schema allowlist; expose `admin_api` only when ready for the admin client and keep `app_private` unexposed.
-- Configure and verify invitation-only owner access.
-- Implement sign-in, sign-out, session expiry and password recovery.
-- Provision the first owner only after an actual business and owner email are approved.
+### 2B.4 — Owner authentication and initial admin app
+<badge>Code foundation complete; dashboard gates remain</badge>
+- Sign-in, sign-out, password recovery and invitation password setup are implemented in `admin/`.
+- Tenant membership lookup uses the protected `admin_api` schema.
+- Profile and brand-colour editing, category/listing create/archive, and private Promotions create/delete are implemented.
+- Configure the Data API schema allowlist and Auth settings using [Owner Auth setup](phase-2b-owner-auth-setup.md).
+- Test email invitation delivery before inviting a real owner; no owner account has been provisioned.
 - Never expose a secret/service-role key in browser code.
 
-### 2B.5 — Private admin interface
-- Mobile-first dashboard and navigation.
-- Business profile and branding/logo management.
-- Categories and product/service listing management.
-- Private Promotions management.
-- Contact/social details and owner data export.
-- Loading, empty, validation and error states.
+### 2B.5 — Complete private admin interface
+**Partially implemented**
+- Mobile-first dashboard and navigation; business profile and brand-colour editing.
+- Category/listing creation and archive; private Promotions create/delete.
+- Still to implement: logo/image upload, contact/social editing refinements, data export, and further QA.
 
 ### 2B.6 — Public storefront integration
 - Read only published, allowlisted fields through the public views.
@@ -96,9 +95,10 @@ Provider, tenant model, project, owner onboarding direction and initial role are
 
 ## Remaining implementation gates
 
-1. Verify exposed Data API schemas; `admin_api` has been created but is not yet exposed.
-2. Configure and verify Auth invitation-only settings; no owner account has been provisioned.
-3. Implement and test the admin application and public data adapter.
-4. Set up Storage bucket and object policies only when logo/listing image upload is implemented.
+1. Verify exposed Data API schemas; `admin_api` has been created but must be added to the exposed list, while `app_private` remains unexposed.
+2. Configure and verify Auth invitation-only settings and email delivery; no owner account has been provisioned.
+3. Run browser integration tests through the actual Data API after dashboard configuration.
+4. Set up Storage bucket and object policies before enabling logo/listing image upload.
+5. Implement the public data adapter; the current static storefront is not yet synchronised with owner edits.
 
 The current database foundation is development-only. No production deployment, live customer onboarding, or merge to `main` is authorized by this phase.
