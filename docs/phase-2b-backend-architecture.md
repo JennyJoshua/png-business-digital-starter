@@ -108,7 +108,7 @@ Storage bucket/object policies are not yet created. Logo and listing image uploa
 
 ## 7. Supabase project and Free-plan operations
 
-The Digital Starter development project is separate from other projects. PNG Alert was selected by the user for temporary pausing to free the Free-plan active-project slot; the pause operation was still processing at the last status check. No other existing project was changed.
+The Digital Starter development project is separate from other projects. PNG Alert was selected by the user for temporary pausing to free the Free-plan active-project slot; the project is now confirmed INACTIVE. No other existing project was changed.
 
 Supabase Free projects are for development/testing only. A paused Free project has a 90-day one-click restore window; pause is not a backup. Maintain independent database and Storage backups before planned pauses. Before public launch, approve a paid production arrangement and migration/recovery plan.
 
