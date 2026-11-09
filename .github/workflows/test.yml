@@ -24,6 +24,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Check owner admin JavaScript syntax
+        run: node --check admin/admin.js
+
       - name: Run automated tests
         run: npm test
 
