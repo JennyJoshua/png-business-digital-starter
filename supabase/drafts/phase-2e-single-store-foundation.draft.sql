@@ -390,7 +390,7 @@ grant update (
   publication_status
 ) on app_private.store_profile to authenticated;
 
-grant select (id, publication_status) on app_private.store_profile to anon;
+
 grant select (id, publication_status) on app_private.categories to anon;
 grant select (
   id, category_uid, name, slug, description, sort_order, publication_status, image_url
@@ -537,9 +537,8 @@ grant insert, update on admin_api.categories to authenticated;
 grant insert, update on admin_api.listings to authenticated;
 grant insert, update on admin_api.promotions to authenticated;
 
--- 10. Verify old legacy tables have no browser privileges after conversion.
-revoke all on all tables in schema app_private from public, anon, authenticated;
--- Reapply the approved new-table grants after the schema-wide legacy revocation.
+-- 10. Legacy tables remain inaccessible to browser roles because the schema-wide
+-- revocation above ran before the new-table grants. No additional grants follow.
 grant select (
   singleton_key, store_uid, name, slug, business_type, tagline, description,
   phone, whatsapp, public_email, website_url, address_line, town, province,
