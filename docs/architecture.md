@@ -1,74 +1,75 @@
 # Architecture
 
-**Principle:** one master template, many independent business applications, one future marketplace connection.
+**Principle:** one master template, many independent single-store applications, one future marketplace connection.
 
-## Current implementation: zero-dependency static site generator (Node.js)
+## Current public storefront implementation
 
 `scripts/build.mjs` reads a business folder and writes plain HTML/CSS/JS into `dist/`.
 
-| Need | How it is met |
+| Need | Current approach |
 |---|---|
-| Independent deployments | Each customer copies the repo and builds only their own folder; output is static files |
-| Config-driven branding | Colours become CSS variables; name, logo, cover come from `business.json` |
-| Mobile performance | No framework, small CSS, tiny inline script, lazy-loaded images |
-| Low cost / simple hosting | Any static host (GitHub Pages, Cloudflare Pages, Netlify, plain web server) |
-| Future API integration | Stable IDs, versioned export format, documented interface |
-| Simple maintenance | No runtime dependencies; builds quickly |
+| Independent storefronts | Each customer receives a separate repository and build |
+| Config-driven branding | Colours, name, logo and cover come from business configuration |
+| Mobile performance | Static output, small CSS/JS, lazy-loaded images |
+| Low-cost hosting | Static hosting is supported |
+| Future API integration | Stable IDs and versioned export contract |
+| Simple public delivery | No framework/runtime server required for the public static build |
 
-**Current trade-offs:** catalogue edits require a rebuild and redeploy; there is no owner admin; search runs in the browser over the generated catalogue (appropriate for small-to-medium catalogues, not tens of thousands). Phase 2A is merged into `main`: public Promotions output is removed; homepage logo fallback, live listing/category suggestions and a dedicated results page with category filtering, sorting and clear-search are implemented.
+Catalogue edits in the static-only baseline require a rebuild and redeploy. Phase 2A is merged into `main`: public Promotions output is removed; homepage logo fallback, live listing/category suggestions and a dedicated results page with filtering/sorting are implemented.
 
-## Approved next product architecture: public storefront + private owner admin
+## Approved product architecture: independent single-store app + private admin
 
-The product will provide two distinct user experiences while sharing one business identity, catalogue, stable IDs and design system:
+Each customized business application is an independent instance with:
+- Its own GitHub repository under the platform operator's account.
+- Its own hosting/deployment.
+- Its own Supabase project under the platform operator's account.
+- Exactly one store/business in that database.
+- A public storefront and a separate private admin interface.
 
-- **Public storefront:** customer-facing and browseable without customer login. It shows business information, logo/placeholder, products/services, search, category navigation, listing details and contact/social links. It must not expose a dedicated Promotions section or owner-management controls.
-- **Owner admin:** a separate, private management interface for the authenticated business owner. It manages business profile and branding, logo, catalogue/listings, categories, promotions, contact/social details and data export.
-- **Shared data:** both interfaces use the same underlying business and listing records. The admin edits data; the public storefront renders only fields and content intended for public display.
-- **Deployment shape:** separate interfaces/routes and access boundaries in the same product/codebase are preferred initially. They do not need separate codebases. Each customer still receives an independent business deployment/instance as the service model requires.
+One store may have one administrator or several administrators. All of them administer the same store in that instance. The platform operator owns and maintains the technical infrastructure, database schema, migrations, security configuration, backups and recovery. Store administrators are custodians of the store's brand, profile and catalogue content; they do not receive Supabase project-owner or database-maintenance access.
 
-### Security boundary (mandatory)
+This replaces the earlier shared multi-tenant Supabase proposal. Do not implement cross-business tenant switching or place multiple customer stores in one customer database.
 
-The owner admin is private by authentication and server-side authorization, not merely by hiding navigation or using an obscure URL. Owner-only operations and writes must be enforced by a trusted backend. Never embed admin credentials or privileged secrets in generated public files. The current static-only architecture cannot safely implement authenticated administration or persistent owner edits by itself; introducing an appropriate backend/authentication layer is a prerequisite. Public storefront pages and exports must never leak private admin data.
+### Public storefront
 
-### Promotions policy
+Customers browse without accounts. The storefront displays only public business information and published products/services, search, category navigation, listing details and contact/social links. It must not contain a dedicated Promotions section or owner-management controls.
 
-Promotions creation and management is owner-admin functionality. For v1, promotions remain private to the owner/admin and are not rendered as a dedicated public page, navigation item, homepage banner or public promotional placement. Any future public promotion placement requires a separately approved scope change and an explicit owner-controlled publication state.
+### Private store admin
 
-### Logo behaviour
+Authenticated store administrators manage their own store's profile, brand identity, logo/assets, contact details, categories, products/services, catalogue content and private Promotions. The interface must be separate from the public customer experience. Store administrators cannot manage database schema, migrations, backups, project settings or privileged credentials.
 
-The public homepage must reserve a consistent logo area. If a business logo exists, display it; otherwise display a neutral, branded placeholder that preserves layout and clearly indicates the logo can be added by the owner. The owner admin will provide the future logo-management control.
+### Shared data and publication
 
-### Search experience
+The public storefront and admin interface use the same canonical records within that one store's Supabase project. Public APIs return explicit allowlisted fields and published records only. Draft/archived and private data remain unavailable to anonymous visitors. Promotions remain private in v1 and must not appear in public navigation, pages, banners or placements.
 
-Search must work well on mobile and support:
-1. Live suggestions while the customer types, matching product/service names and relevant categories.
-2. Selecting a suggestion opens its listing/category, while a “view all results” action opens the full results view.
-3. Full results show relevant listing image, name, category, business name and price when supplied.
-4. Category filters and useful sorting; clear empty state and clear-search action when there are no matches.
-5. Search results expose only public catalogue data.
+### Security boundary
 
-The merged Phase 2A implementation provides client-side live listing/category suggestions and a dedicated full results page. Search remains static/client-side and has no pagination or server-side index. Search exposes only generated public catalogue fields.
+Admin security must be enforced by Auth, database grants and RLS—not merely by hiding a link or route. Every exposed table needs deliberate RLS and least-privilege grants. Admin policies must verify an active membership for the current user; authenticated role alone is insufficient. Multiple administrators may be members of the same store, but they cannot self-enrol or grant access through the browser client. Never embed service-role/secret keys in public files.
 
-## Data separation and marketplace readiness
+## Platform operator maintenance model
 
-Each deployment contains only its own `business/` folder. The build rejects asset paths that point outside that folder. The export file is generated from the same config and contains only whitelisted fields. Stable business/listing IDs and a versioned export format remain the foundation for future marketplace onboarding, with owner consent and verified schema mapping required.
+The platform operator provisions each independent Supabase project, applies reviewed version-controlled migrations, configures Auth/Data API settings, provisions store and administrator records through a trusted process, monitors the instance and maintains backups/recovery. A repeatable clean-project setup and upgrade procedure is a prerequisite for customer onboarding.
 
-## Security measures actually implemented in the current static version
+The current Phase 2B branch contains an earlier shared multi-tenant prototype. Its schema, membership model, admin API calls and security tests do not yet implement this approved architecture. It must be redesigned and retested before customer use. The existing development project is retained for review; do not destructively convert or delete it without a separate approved plan.
 
-Business-supplied text is HTML-escaped; URLs must be http(s); colours must be `#RRGGBB`; IDs must be lowercase slugs; phone numbers are validated. Invalid configs fail the build with clear messages. There is currently no authentication, secure admin area or login.
+## Future PNG Materials Marketplace
+
+The future PNG Materials Marketplace may later provide central business profiles, discovery and marketplace-wide features. That is not part of this starter phase. Each storefront must work independently without depending on the marketplace.
+
+Preserve stable store/category/listing IDs and a versioned export/import contract. Any future transfer or synchronisation must be scoped, documented and explicitly consented to by the business owner. Do not build a central Facebook-like directory or cross-business account system now.
+
+## Search experience
+
+Search must support mobile live suggestions for products/services and categories, a full results page, category filters, sorting, useful empty states and clear-search. The merged Phase 2A implementation provides client-side live suggestions and a dedicated results page. The public experience must only search public catalogue fields.
 
 ## Demonstration-only items
 
-The three example businesses, their phone numbers, emails and social links are placeholders. Placeholder logos/images are generated SVGs.
+Example businesses, phone numbers, emails and social links are placeholders. Demo data must remain visibly marked and must be replaced and reviewed before launch.
 
 ## Design system
 
-One stylesheet (`src/styles.css`) and one set of page templates (`src/render.mjs`). Branding changes colours, logo and cover image, so layout and navigation stay consistent for every business. The future admin interface should reuse the design tokens and shared components where appropriate while maintaining a distinct admin information architecture.
+One shared stylesheet and page-template system supports all instances. Branding changes colours, logo and cover while preserving consistent layout. The admin should reuse design tokens where appropriate but retain its own information architecture and access boundary.
 
-## Phase 2A — public storefront (merged)
+## Phase 2B status
 
-Public storefront improvements are merged into `main`: no public Promotions page, homepage logo fallback, live listing/category suggestions, a dedicated search results page, category filtering, sorting and clear-search.
-
-## Version 1.1.0
-
-Validation covers fields with `file › field` messages, brand-colour contrast, safe image paths and placeholder detection for non-demo businesses. Demo data is visibly marked. Exports use a field whitelist. Images have runtime fallbacks. Architecture and data model remain unchanged.
+The approved target architecture is documented, but the existing implementation remains the old shared-tenant prototype. Single-store schema, multi-admin workflow, operator provisioning/maintenance, REST/browser integration, Storage policies, live public data adapter and backup/restore procedure remain to be implemented and verified.
