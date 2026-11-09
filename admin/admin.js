@@ -31,7 +31,7 @@ function switchView(name) {
 function fillProfile() {
   if (!currentBusiness) return;
   const f = $("#profile-form");
-  for (const n of ["name","business_type","tagline","description","phone","whatsapp","email","website_url","address_line","town","province"]) {
+  for (const n of ["name","business_type","tagline","description","phone","whatsapp","email","website_url","address_line","town","province","brand_primary","brand_accent"]) {
     if (f.elements[n]) f.elements[n].value = currentBusiness[n] ?? "";
   }
 }
@@ -128,6 +128,13 @@ $("#profile-form").addEventListener("submit",async e=>{
   const r=await adminDb.from("businesses").update(payload).eq("id",currentBusinessId).select().single();
   if(r.error){message(appMessage,friendlyError(r.error));return;}
   currentBusiness={...currentBusiness,...r.data};$("#welcome-title").textContent=currentBusiness.name;message(appMessage,"Business profile saved.",true);
+});
+$("#branding-form").addEventListener("submit",async e=>{
+  e.preventDefault();const f=e.currentTarget;
+  const payload={brand_primary:value(f,"brand_primary"),brand_accent:value(f,"brand_accent")};
+  const r=await adminDb.from("businesses").update(payload).eq("id",currentBusinessId).select().single();
+  if(r.error){message(appMessage,friendlyError(r.error));return;}
+  currentBusiness={...currentBusiness,...r.data};message(appMessage,"Brand colours saved. Public storefront sync is not enabled yet.",true);
 });
 $("#category-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget,name=value(f,"name"),description=value(f,"description");
