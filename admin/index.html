@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0b6e4f">
+  <title>Owner Admin · Business Digital Starter</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <main id="main">
+    <section id="auth-panel" class="auth-wrap" aria-labelledby="auth-title">
+      <div class="auth-card">
+        <div class="brand-mark" aria-hidden="true">B</div>
+        <p class="eyebrow">BUSINESS DIGITAL STARTER</p>
+        <h1 id="auth-title">Owner sign in</h1>
+        <p class="muted">Private business management. Access is available to invited business owners only.</p>
+        <form id="signin-form">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" autocomplete="username" required>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+          <button class="primary" type="submit">Sign in</button>
+        </form>
+        <button id="forgot-link" class="text-button" type="button">Forgot your password?</button>
+        <form id="forgot-form" hidden>
+          <label for="recovery-email">Account email</label>
+          <input id="recovery-email" name="email" type="email" autocomplete="email" required>
+          <button class="primary" type="submit">Send recovery email</button>
+          <button class="text-button cancel" type="button">Back to sign in</button>
+        </form>
+        <form id="password-form" hidden>
+          <label for="new-password">New password</label>
+          <input id="new-password" name="password" type="password" minlength="10" autocomplete="new-password" required>
+          <label for="confirm-password">Confirm new password</label>
+          <input id="confirm-password" name="confirmPassword" type="password" minlength="10" autocomplete="new-password" required>
+          <button class="primary" type="submit">Save password</button>
+        </form>
+        <p id="auth-message" class="message" role="status" aria-live="polite"></p>
+        <p class="small muted">There is no public registration link. Ask the business administrator for an invitation.</p>
+      </div>
+    </section>
+
+    <section id="app-panel" hidden>
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Business Digital Starter admin home"><span class="brand-mark small-mark">B</span><span><strong>Business Admin</strong><small>Digital Starter</small></span></a>
+        <div class="top-actions"><span id="signed-in-email" class="muted small"></span><button id="signout" class="outline" type="button">Sign out</button></div>
+      </header>
+      <div class="layout">
+        <aside class="sidebar" aria-label="Admin navigation">
+          <p class="eyebrow">MANAGE BUSINESS</p>
+          <nav>
+            <button class="nav-item active" data-view="overview">Overview</button>
+            <button class="nav-item" data-view="profile">Business profile</button>
+            <button class="nav-item" data-view="categories">Categories</button>
+            <button class="nav-item" data-view="catalogue">Catalogue</button>
+            <button class="nav-item" data-view="promotions">Promotions <span class="private-tag">Private</span></button>
+            <button class="nav-item" data-view="account">Account</button>
+          </nav>
+          <p class="sidebar-note">Your changes are saved to the secure business database.</p>
+        </aside>
+        <div class="content">
+          <div id="app-message" class="message app-message" role="status" aria-live="polite"></div>
+          <section class="view active" id="view-overview">
+            <p class="eyebrow">YOUR BUSINESS</p><h1 id="welcome-title">Overview</h1>
+            <p class="muted">A quick view of your business information and catalogue.</p>
+            <div class="stat-grid">
+              <article class="stat-card"><span>Categories</span><strong id="count-categories">—</strong></article>
+              <article class="stat-card"><span>Listings</span><strong id="count-listings">—</strong></article>
+              <article class="stat-card"><span>Private promotions</span><strong id="count-promotions">—</strong></article>
+            </div>
+            <article class="panel"><h2>Business status</h2><p id="business-status" class="muted">Loading…</p></article>
+            <article class="panel"><h2>Getting started</h2><ul><li>Complete your business profile.</li><li>Add categories and products or services.</li><li>Keep Promotions private in this version.</li></ul></article>
+          </section>
+
+          <section class="view" id="view-profile">
+            <p class="eyebrow">BUSINESS DETAILS</p><h1>Business profile</h1>
+            <p class="muted">Keep your public business details accurate. Only approved public fields are shown on your storefront.</p>
+            <form id="profile-form" class="panel form-grid">
+              <label>Business name<input name="name" maxlength="120" required></label>
+              <label>Business type<select name="business_type"><option value="hardware_supplier">Hardware supplier</option><option value="general_retail">General retail</option><option value="service_provider">Service provider</option><option value="other">Other</option></select></label>
+              <label class="wide">Tagline<input name="tagline" maxlength="160"></label>
+              <label class="wide">Description<textarea name="description" rows="4" maxlength="2000"></textarea></label>
+              <label>Phone<input name="phone" type="tel" maxlength="40"></label>
+              <label>WhatsApp<input name="whatsapp" type="tel" maxlength="40"></label>
+              <label>Email<input name="email" type="email" maxlength="254"></label>
+              <label>Website<input name="website_url" type="url" maxlength="500" placeholder="https://"></label>
+              <label class="wide">Street / area<input name="address_line" maxlength="180"></label>
+              <label>Town<input name="town" maxlength="100"></label>
+              <label>Province<input name="province" maxlength="100"></label>
+              <div class="wide"><button class="primary" type="submit">Save business profile</button></div>
+            </form>
+          </section>
+
+          <section class="view" id="view-categories">
+            <p class="eyebrow">ORGANISE YOUR CATALOGUE</p><h1>Categories</h1>
+            <form id="category-form" class="panel form-grid compact">
+              <label>Category name<input name="name" maxlength="80" required></label>
+              <label>Description<input name="description" maxlength="300"></label>
+              <div class="wide"><button class="primary" type="submit">Add category</button></div>
+            </form>
+            <div id="categories-list" class="record-list"></div>
+          </section>
+
+          <section class="view" id="view-catalogue">
+            <p class="eyebrow">PRODUCTS AND SERVICES</p><h1>Catalogue</h1>
+            <form id="listing-form" class="panel form-grid">
+              <label>Listing name<input name="name" maxlength="160" required></label>
+              <label>Type<select name="kind"><option value="product">Product</option><option value="service">Service</option></select></label>
+              <label>Category<select name="category_id"><option value="">No category</option></select></label>
+              <label>Price (PGK)<input name="price" type="number" min="0" step="0.01" placeholder="Leave blank if quote required"></label>
+              <label class="wide">Description<textarea name="description" rows="3" maxlength="3000"></textarea></label>
+              <label>Availability<input name="availability_status" maxlength="80" placeholder="e.g. In stock"></label>
+              <div class="wide"><button class="primary" type="submit">Add to catalogue</button></div>
+            </form>
+            <div id="listings-list" class="record-list"></div>
+          </section>
+
+          <section class="view" id="view-promotions">
+            <p class="eyebrow">OWNER ONLY</p><h1>Private promotions</h1>
+            <p class="notice private-notice">Promotions are private owner records in v1. They are not published on your public storefront.</p>
+            <form id="promotion-form" class="panel form-grid">
+              <label>Promotion title<input name="title" maxlength="120" required></label>
+              <label>Status<select name="status"><option value="draft">Draft</option><option value="active">Active (private)</option><option value="archived">Archived</option></select></label>
+              <label class="wide">Internal notes<textarea name="internal_copy" rows="3" maxlength="2000"></textarea></label>
+              <label>Start date<input name="starts_at" type="datetime-local"></label>
+              <label>End date<input name="ends_at" type="datetime-local"></label>
+              <div class="wide"><button class="primary" type="submit">Save private promotion</button></div>
+            </form>
+            <div id="promotions-list" class="record-list"></div>
+          </section>
+
+          <section class="view" id="view-account">
+            <p class="eyebrow">SECURITY</p><h1>Account</h1>
+            <article class="panel"><h2>Signed in as</h2><p id="account-email"></p><p class="muted small">Use sign out when finished, especially on a shared device.</p><button id="account-signout" class="outline" type="button">Sign out</button></article>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="./admin.js"></script>
+</body>
+</html>
