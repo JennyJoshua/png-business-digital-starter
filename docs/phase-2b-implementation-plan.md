@@ -1,8 +1,8 @@
 # Phase 2B — Implementation Plan
 
-**Working branch:** `phase-2b/independent-single-store-architecture`  
+**Current design branch:** `phase-2c/data-contract-and-operator-workflow`  
 **Architecture:** one independent app/repository/deployment/Supabase project per store.  
-**Status:** architecture and plan revised; code and database still reflect an earlier shared multi-tenant prototype.
+**Status:** architecture, logical data contract and operator lifecycle design drafted; code and database still reflect an earlier shared multi-tenant prototype.
 
 ## Product outcome
 
@@ -29,20 +29,20 @@ Public visitors browse without accounts. Public Promotions output remains exclud
 The independent single-store-per-project model, role boundaries, future marketplace boundary and transition cautions are documented.
 
 ### 2B.2 — Single-store data contract
-<badge>Next — design required</badge>
-- Define the singleton store profile and stable portable store ID.
-- Define categories, listings, promotions, settings and asset metadata.
-- Define multiple administrators for one store, with operator-controlled provisioning and revocation.
-- Define immutable stable IDs and versioned export/import JSON.
-- Specify publication states and public-field allowlists.
-- Avoid business-to-many-tenant relationships in an instance schema.
+<badge>Draft complete — owner review required</badge>
+See [single-store-data-contract.md](single-store-data-contract.md). It defines the singleton store, portable IDs, categories/listings/promotions/assets/settings, publication rules, public field allowlist, multi-admin membership, and versioned export/import envelope. Several detailed choices remain open before SQL is written.
 
 ### 2B.3 — Operator provisioning and maintenance design
-- Document how the operator creates each Supabase project and records its repository/project/deployment association.
-- Define repeatable clean-project migrations and version tracking.
-- Define operator-only initial store/admin provisioning.
-- Define backup, restore, recovery, migration rollback/forward-fix and incident procedures.
-- Ensure store admins do not need Supabase dashboard access or database credentials.
+<badge>Draft complete — owner review required</badge>
+See [operator-provisioning-and-maintenance.md](operator-provisioning-and-maintenance.md). It defines the private instance register, approval gates, clean-project provisioning, migration/upgrade lifecycle, admin lifecycle, backup/restore, incident recovery and instance states. Backup capabilities and costs must be verified against the actual provider plan before promises are made.
+
+### 2B.3A — Design review and decisions
+- Resolve the open data-contract decisions before drafting executable SQL.
+- Confirm the first-version administrator permission model.
+- Confirm public contact fields and asset visibility/upload policy.
+- Confirm export packaging and retention/deletion rules.
+- Confirm the operator's invitation/revocation and backup/restore approach.
+- Record approval of the detailed schema and operational acceptance criteria before implementation.
 
 ### 2B.4 — Database schema and security implementation
 - Create a clean baseline migration for the single-store model.
