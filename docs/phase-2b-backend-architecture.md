@@ -44,13 +44,13 @@ Three explicit allowlist views are provided in `public`:
 - `storefront_categories`
 - `storefront_listings`
 
-All are created with `security_invoker = true`, so underlying table privileges and RLS are applied to the requesting role. The views include only public business/catalogue fields and published rows belonging to published businesses. Promotions, memberships, private settings and asset metadata are not included.
+All are created with `security_invoker = true`, so underlying table privileges and RLS are applied to the requesting role. Anonymous `SELECT` is granted on only the three base tables used by these views; existing RLS policies restrict results to published businesses and published catalogue records belonging to published businesses. Promotions, memberships, private settings and asset metadata are not included.
 
 ### Owner API contract
 
 An `admin_api` schema contains seven security-invoker views corresponding to the seven application tables. The views are granted only to `authenticated`; the schema has no `anon` usage grant. These views are simple/updatable where appropriate, but underlying column grants and RLS remain authoritative. Memberships are read-only to owners.
 
-**Important configuration gate:** `admin_api` has been created but has not yet been added to the Supabase Data API exposed-schema list. Before the browser admin is connected, expose `admin_api` and `public` only as required, and keep `app_private` unexposed. Verify the final exposed-schema list in the Supabase dashboard. The schema/grant design does not replace this configuration check.
+**Dashboard configuration:** The user confirmed that `admin_api` was added to the Supabase Data API exposed-schema list and saved, retaining `public` and keeping `app_private` unexposed. The setting still needs a real REST/browser request verification; database schema grants alone do not prove the Data API allowlist.
 
 ### Data rules
 
@@ -88,7 +88,7 @@ Business creation, owner invitation and membership provisioning remain operator-
 - Seven application tables in `app_private`; RLS enabled on all seven.
 - 22 policies across public reads, owner reads/writes and private data.
 - Membership checks use protected `business_memberships` rows and `auth.uid()`, not user metadata.
-- Least-privilege grants separate public reads, owner writes and operator provisioning.
+- Least-privilege grants separate anonymous published storefront reads, owner writes and operator provisioning.
 - Public and owner API views use `security_invoker = true`.
 - `admin_api` is not granted to anonymous users; membership view is not insertable/updateable by authenticated owners due to grants.
 - No SECURITY DEFINER function was added.
@@ -127,12 +127,13 @@ Version-controlled SQL migrations:
 - `supabase/migrations/20261109000651_phase_2b_owner_admin_core.sql`
 - `supabase/migrations/20261109000726_phase_2b_public_read_and_fk_indexes.sql`
 - `supabase/migrations/20261109001259_phase_2b_admin_api_views.sql`
+- `supabase/migrations/20261109002919_phase_2b_public_storefront_read_grants.sql`
 
 Applied migration versions on the development project match these files. The SQL schema has been checked against the live project after application.
 
 ## 10. Next sequence
 
-1. Complete the dashboard settings and email-delivery gates in [Owner Auth setup](phase-2b-owner-auth-setup.md).
+1. Verify the user-saved Data API exposed-schema configuration through real REST requests, then complete Auth invitation-only settings and email-delivery gates in [Owner Auth setup](phase-2b-owner-auth-setup.md).
 2. Provision and test the first real owner only after explicit business and email approval.
 3. Add Storage bucket/object policies and image management.
 4. Connect the static storefront to the public views behind a tested adapter.
