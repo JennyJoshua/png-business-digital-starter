@@ -36,7 +36,7 @@ npm run validate
 npm test
 ```
 
-See `docs/architecture.md`, `docs/customer-onboarding.md` and the Phase 2B documents for the current design and implementation gates.
+See [architecture](docs/architecture.md), [customer onboarding](docs/customer-onboarding.md), the [single-store data contract](docs/single-store-data-contract.md), the [operator provisioning and maintenance workflow](docs/operator-provisioning-and-maintenance.md), and the [Phase 2B implementation plan](docs/phase-2b-implementation-plan.md) for the current design and implementation gates.
 
 ## Database operations
 
