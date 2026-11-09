@@ -1,162 +1,128 @@
 # Phase 2B — Owner Admin Backend Architecture
 
-**Status:** Architecture baseline carried forward on `phase-2b/owner-admin-interface-foundation`, created from the merged `main` branch. This remains a development plan, not a deployment or a final platform selection. No cloud resources, credentials, database schema, migrations or authentication settings have been changed.
+**Status:** Core multi-tenant database foundation implemented and verified on the approved development project. Owner authentication, admin UI, Storage upload policies and public storefront integration remain future steps on `phase-2b/owner-admin-interface-foundation`.
 
-**Purpose:** Establish a secure, affordable and marketplace-ready foundation for the private business-owner admin while preserving the current public static storefront and the one-repository/one-deployment customer delivery model.
+**Purpose:** Provide a secure, affordable and marketplace-ready foundation for the private business-owner admin while preserving the existing static public storefront.
 
 ## 1. Current baseline and constraints
 
-- Phase 2A is merged into `main` (PR #3). Public Promotions output is removed; the public search experience is implemented.
-- The current app is a zero-runtime-dependency Node.js static generator. It has no login, server, database or persistent owner editing.
-- Each customer receives an independent storefront repository and deployment.
-- The long-term data contract must preserve stable business/listing identifiers and allow owner-approved onboarding into PNG Materials Marketplace without re-entering all data.
-- The preferred operating constraint is no paid services during development and reuse of existing accounts where possible. These Free Plan projects are development/testing environments only; before public launch or live customer use, plan and approve a suitable paid production setup.
+- Phase 2A is merged into `main`. Public Promotions output is removed; public search is implemented.
+- The existing app is a zero-runtime-dependency Node.js static generator. It has no login, server, database or persistent owner editing.
+- Each customer continues to receive an independent storefront repository and deployment.
+- The data contract preserves stable business/category/listing identifiers for future owner-consented PNG Materials Marketplace onboarding.
+- Free Supabase projects are development/testing only. Plan and approve a suitable paid production environment, backups and operations before public launch or live customer data.
 
-## 2. Recommended direction
+## 2. Approved architecture decisions
 
-**Recommend Supabase as the first backend candidate, using one shared multi-tenant project for this product rather than one database project per business.**
+- **Provider:** Supabase.
+- **Topology:** one shared multi-tenant backend project for all Digital Starter storefronts, rather than one project per business.
+- **Project:** `PNG Business Digital Starter Dev` (`rwcwvqlgyckfdrglsbfg`), Sydney region (`ap-southeast-2`), Free development project.
+- **Separation:** this project is separate from PNG Materials Marketplace and PNG Alert.
+- **Owner onboarding:** invitation-only provisioning for the pilot; no self-service business-owner registration.
+- **Initial role:** owner only in v1. Membership authorization comes from database rows, never editable user metadata.
+- **Storefronts:** independent static deployments; public and private interfaces are separate surfaces but share canonical records.
 
-This recommendation is based on an integrated Postgres database, Auth, Storage and database-enforced Row Level Security, and the existing Supabase account already used in the user's other work. It avoids introducing a separate paid application server for the first pilot.
+## 3. Logical data model
 
-The recommended topology is:
+UUID primary keys are internal. Stable external identifiers are retained for business, category and listing portability.
 
-- Each customer keeps an independent public storefront repository and static deployment.
-- The owner-admin interface is a separate route/application surface, but may share the same repository and design tokens.
-- All participating stores connect to one central backend project using a publishable client key.
-- Every business-owned record carries a `business_id` foreign key; every owner access is checked against a database membership record.
-- Postgres RLS is the mandatory authorization boundary. Frontend filtering is never treated as security.
-- A future marketplace can consume a versioned, consent-based business/listing export or API without depending on the static site's file layout.
-
-**Important distinction:** independent storefront repositories/deployments do not mean independent database projects. A shared backend is a multi-tenant architecture and must pass cross-tenant security tests before any real business data is stored.
-
-## 3. Free-tier reality and operating limits
-
-Supabase's official pricing and billing pages checked 9 November 2026 state that the Free plan includes two active projects, 500 MB database per project, 1 GB file storage, 5 GB egress and 50,000 monthly active users. Free projects pause after one week of inactivity. The Free plan does not include automatic backups, and projects beyond the free allowance may require paid service.
-
-Consequences:
-
-1. Use one shared backend project for the Digital Starter pilot, not a new project for every business.
-2. The two-active-project quota applies across all Free Plan organizations where the account is an Owner or Administrator. Paused projects do not count, so projects can be rotated manually without deleting them.
-3. Pausing a project makes its database/API-backed applications unavailable. Never pause a live customer-facing project unless its downtime is explicitly acceptable.
-4. A paused Free Plan project can be restored through the dashboard's one-click restore for **90 days**. After 90 days, the one-click restore window has expired; recovery requires downloading the available database backup and Storage objects, then restoring them to a project or locally. Treat this as a recovery path, not a routine rotation.
-5. Pausing is not a backup strategy. Keep independent database and Storage backups before any planned pause, especially because Free Plan projects do not include automatic backups.
-6. Avoid uploading large original photos; resize/compress images before upload and monitor storage/egress.
-7. Keep Free Plan projects limited to development and testing. Before publishing a site or using it for live customer/business operations, plan and approve paid production hosting/backend capacity, backups and operational requirements. Do not assume a development project is production-ready.
-8. Do not create a new Supabase project until the user confirms the intended organization and explicitly approves the project creation.
-
-Sources:
-- https://supabase.com/pricing
-- https://supabase.com/docs/guides/platform/billing-on-supabase
-- https://supabase.com/docs/guides/platform/billing-faq
-
-## 4. Logical data model
-
-Use UUID primary keys internally and preserve stable external identifiers for imports/marketplace portability.
-
-| Entity | Purpose | Visibility |
+| Table | Purpose | Visibility |
 |---|---|---|
-| `businesses` | Canonical business profile, stable `business_id`, publication status | Public fields only when published |
-| `business_memberships` | Maps Auth users to businesses and their role | Owner/admin only |
-| `business_private_settings` | Private settings and operational metadata | Members only |
-| `categories` | Business-specific or shared taxonomy | Public only when attached to a published catalogue |
-| `listings` | Product/service records, stable `listing_id`, price/currency, publication state | Published fields only |
-| `promotions` | Owner-created promotional drafts and internal copy | Private to authorized members in v1 |
-| `asset_metadata` | Storage paths, ownership and intended use | Members; public assets are delivered through public URLs |
+| `app_private.businesses` | Canonical business profile, stable `business_id`, publication status | Published allowlisted fields through public view; owner full record |
+| `app_private.business_memberships` | Maps Auth users to businesses and role/status | Owner's own active membership only |
+| `app_private.categories` | Business-specific categories and stable category IDs | Published rows through public view; owner rows |
+| `app_private.listings` | Product/service catalogue, stable listing IDs, price/currency, publication state | Published rows through public view; owner rows |
+| `app_private.business_private_settings` | Private notes and operational metadata | Active business members |
+| `app_private.promotions` | Owner-created promotional drafts and internal copy | Private to authorized owners in v1 |
+| `app_private.asset_metadata` | Storage object paths, visibility and ownership metadata | Authorized owners |
 
-Data rules:
-- A business may have multiple authorized members in the schema, even if v1 initially provisions one owner.
-- A user may be a member of more than one business.
-- Membership roles are stored in the database, never trusted from editable user metadata.
-- Listing identifiers remain stable across edits and exports; deletion/archival must not silently recycle IDs.
-- Price is numeric plus an explicit ISO currency code; do not store formatted display text as the canonical amount.
-- Promotions are not included in public queries, public exports or public storage.
-- Public views/exports use an explicit field allowlist; no `select *` as a public API contract.
+### Public data contract
 
-## 5. Authorization and publication model
+Three explicit allowlist views are provided in `public`:
 
-### Public visitor (unauthenticated)
-- Can read only public business profile fields for businesses marked `published`.
-- Can read only listings/categories marked `published` that belong to a published business.
-- Cannot read memberships, private settings, draft/unpublished listings, owner notes or promotions.
-- Cannot write any business/catalogue/admin data.
+- `storefront_businesses`
+- `storefront_categories`
+- `storefront_listings`
 
-### Authenticated business owner/member
-- Can read and update only businesses for which a matching active membership exists.
-- Can create/update/delete only records scoped to those businesses, subject to role permissions.
-- Cannot add themselves to another business or promote their own membership role.
-- Cannot change stable ownership/tenant identifiers through ordinary profile/listing updates.
-- Cannot read another business's private data, including by guessing UUIDs or changing request parameters.
+All are created with `security_invoker = true`, so underlying table privileges and RLS are applied to the requesting role. The views include only public business/catalogue fields and published rows belonging to published businesses. Promotions, memberships, private settings and asset metadata are not included.
+
+The underlying application tables are in `app_private`. Before connecting any client, verify in Supabase Data API settings that `app_private` is not in the exposed schema list; expose only the intended API schema(s). The database role grants and RLS policies are not a substitute for verifying the Data API schema allowlist.
+
+### Data rules
+
+- Business-owned records carry a business foreign key.
+- A user may belong to more than one business; a business can support multiple membership rows.
+- The v1 role constraint permits only `owner`.
+- Stable external identifiers are not updateable through normal owner table grants. Categories/listings are archived rather than hard-deleted.
+- Prices are numeric with explicit ISO currency codes (default `PGK`).
+- Promotions are excluded from public views.
+- Public views use explicit column lists; no `select *` public contract.
+
+## 4. Authorization and publication model
+
+### Anonymous visitor
+
+- Can read only published business fields through `public.storefront_businesses`.
+- Can read only published categories/listings belonging to a published business through the other two views.
+- Has no table privilege for memberships, private settings, Promotions or asset metadata.
+- Cannot write business/catalogue/admin data.
+
+### Authenticated owner
+
+- Reads businesses and catalogue rows only when an active membership exists for that business.
+- Creates/updates categories and listings only within a business for which they hold an active owner membership.
+- Can access private settings and Promotions only for their own business.
+- Cannot create or update membership records, self-promote, or change stable tenant/listing/category identifiers through normal table grants.
+- UPDATE policies include both `USING` and `WITH CHECK`.
 
 ### Trusted operator
-- Initial business provisioning and owner invitation use a trusted administrative process.
-- Any privileged server key is restricted to server-side secrets and never appears in static HTML, JavaScript, source maps, Git history or customer configuration.
-- Admin invitations, role changes and account recovery are audited.
 
-### Mandatory implementation safeguards
-- Enable RLS on every table exposed through the Data API.
-- Use explicit grants and separate policies for SELECT, INSERT, UPDATE and DELETE.
-- UPDATE policies require both `USING` and `WITH CHECK`.
-- Check membership from protected database records; do not authorize with `user_metadata`.
-- Add indexes for business/membership columns used in policies.
-- Treat public buckets as public: only intentionally public images go there. Enforce owner-only upload/update/delete by business path. Keep any future private documents in a private bucket.
-- Do not add broad `SECURITY DEFINER` functions to bypass policy problems.
-- Test with at least two business tenants and two users, including unauthenticated access, guessed IDs, cross-tenant writes, role escalation and unpublished content.
+Business creation, owner invitation and membership provisioning remain operator-controlled. No user can self-assign a membership through the client. Any future privileged key must remain server-side and must never enter public HTML, JavaScript, source maps or customer configuration.
 
-Supabase references:
-- https://supabase.com/docs/guides/database/postgres/row-level-security
-- https://supabase.com/docs/guides/storage/security/access-control
-- https://supabase.com/docs/guides/getting-started/the-supabase-way-to-build
+## 5. Implemented database safeguards
 
-## 6. Application shape
+- Seven application tables in `app_private`; RLS enabled on all seven.
+- 22 RLS policies across public reads, owner reads/writes and private data.
+- Membership checks use protected `business_memberships` rows and `auth.uid()`, not user metadata.
+- Least-privilege grants separate public reads, owner writes and operator provisioning.
+- The public views are security-invoker views.
+- No SECURITY DEFINER function was added.
+- Foreign keys used by ownership lookups have indexes; remaining unused-index advisor messages are informational on a new empty schema.
 
-Keep the public storefront lightweight and static where possible. Add a separate private owner-admin surface (for example, `/admin/`) that:
-- requires an authenticated session before rendering protected data;
-- uses a publishable key only;
-- performs data operations under the signed-in user's JWT so RLS is applied;
-- handles session expiry and logout;
-- never assumes hiding a route is access control;
-- uses database publication state to control what the public storefront can read.
+See [Phase 2B security verification](phase-2b-security-verification.md) for actual checks and results.
 
-A small trusted server-side function may be needed for operator-only onboarding/invitations and other actions that require privileged credentials. It must be narrowly scoped and must validate inputs and caller authorization. Do not put a service-role/secret key in the browser.
+## 6. Authentication and Storage still to implement
 
-**Static storefront integration:** Phase 2B should not silently break the existing generated public pages. First establish a canonical backend contract and a controlled data adapter. During migration, the current JSON-to-static build remains the fallback until a test storefront proves it can read published backend data safely. Avoid maintaining two editable sources of truth indefinitely; define a one-way import from current JSON into canonical database records.
+The database foundation does not yet configure Auth invitation settings, create an owner account, or implement sign-in/recovery UI. Before the first owner is invited:
+- Verify public sign-up is disabled or otherwise ensure only operator-invited accounts can receive a membership.
+- Confirm email delivery and recovery behaviour.
+- Provision the owner membership through a trusted operator process.
+- Test session expiry and membership suspension.
 
-### Supabase API and CLI implementation notes (verified 9 November 2026)
+Storage bucket/object policies are not yet created. Logo and listing image upload must wait until a bucket strategy and tenant-path policies are reviewed. Public assets and private documents must not share an indiscriminately public bucket.
 
-- Supabase's Data API no longer automatically exposes newly created public-schema tables by default (the change is enforced across projects from 30 October 2026). Each required table must be deliberately exposed and granted only the required privileges. This is separate from RLS: exposure/grants determine whether a role can reach a table; RLS determines which rows it can access.
-- Enable RLS on every exposed table and use explicit grants. Do not rely on a default table-exposure setting.
-- A browser-based admin can use a Supabase publishable key plus the signed-in owner's Auth JWT, provided every exposed table is protected by carefully tested RLS. The publishable key is public by design; secret/service-role keys must never enter browser code, static assets or source maps.
-- Use the current Supabase CLI v3 workflow deliberately: v3 is local-first and asks before hosted changes. Do not copy old CLI v2 commands without checking the current command help and migration guide.
-- Keep hosted database changes out of this stage. Build and review schema/RLS locally or as version-controlled migration artifacts first, then test against a specifically selected development project after the owner approves the target.
+## 7. Supabase project and Free-plan operations
 
-References:
-- https://supabase.com/changelog?types=breaking-change
-- https://supabase.com/docs/guides/database/secure-data
-- https://supabase.com/docs/guides/getting-started/api-keys
-- https://supabase.com/docs/guides/local-development/cli/getting-started
+The Digital Starter development project is separate from other projects. PNG Alert was selected by the user for temporary pausing to free the Free-plan active-project slot; its pause operation was still processing at the last status check. No other existing project was changed.
 
-## 7. Suggested implementation sequence
+Supabase Free projects are for development/testing only. A paused Free project has a 90-day one-click restore window; pause is not a backup. Maintain independent database and Storage backups before planned pauses. Before public launch, approve a paid production arrangement and migration/recovery plan.
 
-| Step | Deliverable | Exit condition |
-|---|---|---|
-| 2B.1 | Confirm provider, tenancy model and owner onboarding policy | Owner decisions recorded |
-| 2B.2 | Versioned schema and migrations | Schema review; no production apply |
-| 2B.3 | RLS policies and pgTAP tests | Cross-tenant and anonymous tests pass |
-| 2B.4 | Auth and owner provisioning | Invitation/recovery/session tests pass |
-| 2B.5 | Private admin shell and business profile | Owner can manage own profile only |
-| 2B.6 | Catalogue/categories CRUD and image storage | Owner CRUD + public read boundary passes |
-| 2B.7 | Private Promotions module | No public query/export leakage |
-| 2B.8 | Public storefront data adapter and migration | Existing static build remains deployable; integration verified |
-| 2B.9 | Marketplace export/API contract | Stable IDs and explicit owner consent verified |
+## 8. Migrations and implementation record
 
-## 8. Decisions still required before database implementation
+Version-controlled SQL migrations:
 
-The following are the minimum architecture decisions. The recommendation is shown; alternatives remain open until the owner confirms.
+- `supabase/migrations/20261109000651_phase_2b_owner_admin_core.sql`
+- `supabase/migrations/20261109000726_phase_2b_public_read_and_fk_indexes.sql`
 
-1. **Backend provider:** Supabase (recommended, reuse existing account) vs another provider.
-2. **Tenant topology:** one shared multi-tenant Supabase project for all customer storefronts (recommended for free-tier feasibility) vs one project per customer (not feasible at scale on the Free plan).
-3. **Owner onboarding:** invitation-only during pilot (recommended for security) vs public self-registration with pending business approval.
-4. **Initial membership roles:** one owner only in v1 (recommended) vs owner plus staff roles from the beginning.
-5. **Existing project:** reuse an existing Supabase project only after confirming it is suitable and isolated from the PNG Materials Marketplace; otherwise create a separate Digital Starter project only with explicit approval.
+Applied migration versions on the development project match these files. The SQL schema has been checked against the live project after application.
 
-No database or cloud changes are authorized by this architecture proposal. Once the remaining provider, tenant, onboarding, role and project-selection decisions are confirmed, implementation can begin with reviewed migrations and RLS tests on `phase-2b/owner-admin-interface-foundation`.
+## 9. Next sequence
+
+1. Verify Data API exposed schemas and Auth invitation settings.
+2. Implement secure owner authentication and operator-controlled invitation/provisioning.
+3. Build the private mobile-first admin UI.
+4. Add Storage bucket/object policies and image management.
+5. Connect the static storefront to the public views behind a tested adapter.
+6. Add the versioned marketplace export contract and owner consent flow.
+
+No production deployment or merge to `main` is authorized by this work.
