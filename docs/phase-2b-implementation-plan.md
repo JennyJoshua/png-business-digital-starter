@@ -39,6 +39,7 @@ Provider, tenant model, project, owner onboarding direction and initial role are
 - No client write privileges on membership records; stable external identifiers are not updateable through normal owner grants.
 - UPDATE policies use both `USING` and `WITH CHECK`.
 - Anonymous and two-tenant/two-owner checks passed using temporary transaction-scoped fixtures; all fixtures were rolled back.
+- Added the minimum `anon SELECT` grants required by the `security_invoker` public views; existing RLS policies keep the grant limited to published business/catalogue rows.
 - Admin API view isolation and anonymous denial checks passed.
 - Supabase Security Advisor returned no findings.
 - See [Phase 2B security verification](phase-2b-security-verification.md).
@@ -48,7 +49,8 @@ Provider, tenant model, project, owner onboarding direction and initial role are
 - Sign-in, sign-out, password recovery and invitation password setup are implemented in `admin/`.
 - Tenant membership lookup uses the protected `admin_api` schema.
 - Profile and brand-colour editing, category/listing create/archive, and private Promotions create/delete are implemented.
-- Configure the Data API schema allowlist and Auth settings using [Owner Auth setup](phase-2b-owner-auth-setup.md).
+- User confirmed the Data API schema allowlist was saved with `public` and `admin_api` exposed and `app_private` unexposed; verify through real REST requests.
+- Configure and verify Auth settings using [Owner Auth setup](phase-2b-owner-auth-setup.md).
 - Test email invitation delivery before inviting a real owner; no owner account has been provisioned.
 - Never expose a secret/service-role key in browser code.
 - CI passed admin JavaScript syntax validation, automated tests, starter-data validation and demonstration builds; end-to-end Auth/Data API testing remains blocked on dashboard configuration.
@@ -96,7 +98,7 @@ Provider, tenant model, project, owner onboarding direction and initial role are
 
 ## Remaining implementation gates
 
-1. Verify exposed Data API schemas; `admin_api` has been created but must be added to the exposed list, while `app_private` remains unexposed.
+1. Verify the user-saved Data API exposed-schema list through actual REST requests (`public` and `admin_api` exposed; `app_private` unexposed).
 2. Configure and verify Auth invitation-only settings and email delivery; no owner account has been provisioned.
 3. Run browser integration tests through the actual Data API after dashboard configuration.
 4. Set up Storage bucket and object policies before enabling logo/listing image upload.
