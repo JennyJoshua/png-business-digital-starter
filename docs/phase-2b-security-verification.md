@@ -25,10 +25,11 @@ Temporary fixtures used two test Auth users and two business tenants. The SQL ch
 
 | Test | Result |
 |---|---|
-| Anonymous public views return published businesses | PASS |
+| Anonymous public views return published businesses | PASS — earlier transaction-scoped fixtures |
 | Anonymous public views return published listings only | PASS — draft listing omitted |
 | Anonymous role has no SELECT privilege on Promotions | PASS |
 | Anonymous role has no SELECT privilege on memberships | PASS |
+| Anonymous role can query all three public views after least-privilege grants | PASS — zero rows returned in the empty development project; no permission error |
 | Owner A sees their own business only | PASS |
 | Owner A sees own draft and published listings | PASS |
 | Owner A reads own private Promotions | PASS |
@@ -56,13 +57,13 @@ Temporary fixtures used two test Auth users and two business tenants. The SQL ch
 - `20261109001259` — `phase_2b_admin_api_views`
 - `20261109002919` — `phase_2b_public_storefront_read_grants`
 
-All three SQL files are version-controlled under `supabase/migrations/`.
+All four SQL files are version-controlled under `supabase/migrations/`.
 
 ## Important remaining checks
 
-1. Verify and configure the project's exposed Data API schema list before client integration: expose `public` and `admin_api` as required, never `app_private`.
+1. User reports the exposed schema list was saved with `public` and `admin_api`; verify it through actual REST requests, and ensure `app_private` remains unexposed.
 2. Configure and verify Auth invitation-only settings before any owner account is provisioned.
-3. Test through the actual Supabase REST/Data API and browser client after schema exposure and Auth configuration, not only via SQL role simulation.
+3. Test through the actual Supabase REST/Data API and browser client after schema exposure and Auth configuration; SQL role simulation is not a substitute.
 4. Add Storage bucket/object policies before enabling image upload.
 5. Repeat the security tests whenever RLS policies, grants, views or tenant relationships change.
 
