@@ -559,7 +559,6 @@ grant update (
   logo_url, cover_image_url, brand_primary, brand_accent, social_links,
   publication_status
 ) on app_private.store_profile to authenticated;
-grant select (id, publication_status) on app_private.store_profile to anon;
 grant select (id, publication_status) on app_private.categories to anon;
 grant select (id, category_uid, name, slug, description, sort_order, publication_status, image_url)
 on app_private.categories to anon;
