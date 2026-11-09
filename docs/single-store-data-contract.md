@@ -26,7 +26,7 @@ This is a logical contract, not executable SQL. Exact SQL types, constraints, in
 | Category | internal ID; immutable category_uid; name; slug; status; sort order; timestamps | description, image reference | Published categories public; admins manage |
 | Listing | internal ID; immutable listing_uid; kind (product or service); name; status; timestamps | category reference, description, SKU/reference, price, currency, unit, images, contact/action details, sort order | Published listings public; admins manage |
 | Promotion | internal ID; immutable promotion_uid; title; content; status; timestamps | start/end dates, image, internal notes | Admin-only in v1; never public |
-| Asset metadata | internal ID; immutable asset_uid; storage object path; media type; visibility; created timestamp | alt text, dimensions, linked record/type | Admin metadata private; object access follows explicit visibility policy |
+| Asset metadata (later image phase) | internal ID; immutable asset_uid; storage object path; media type; visibility; created timestamp | alt text, dimensions, linked record/type | Deferred from v1; admin metadata private; object access follows separately reviewed bucket policies |
 | Store settings | setting key/value; updated timestamp | grouping and validation metadata | Private; only explicitly approved editable settings exposed to admins |
 
 ### Singleton enforcement
@@ -140,12 +140,12 @@ The marketplace may later accept an owner-consented export through a documented 
 
 ## 8. Open design decisions before SQL
 
-The following must be resolved during detailed implementation design, not guessed in migrations:
-1. Exact store profile fields and which contact/address fields the owner can publish.
-2. Whether category images and listing images use one public bucket with object-level rules or a more restrictive approach.
-3. Whether an admin can restore archived catalogue records or must request operator help.
-4. Exact export file packaging and maximum supported catalogue/image sizes.
-5. How the operator provisions Auth invitations and enforces revocation across active sessions.
-6. Retention and permanent deletion policy.
+The following recommendations are specified in the Phase 2D design for owner review before implementation:
+1. Store profile fields are limited to the explicit public contact/address allowlist; administrators choose which business contact details to publish.
+2. V1 uses validated HTTPS image URLs only. Supabase Storage, asset metadata, bucket visibility and upload policies are deferred to a later separately reviewed phase.
+3. Administrators may restore archived catalogue records by changing status back to draft/published; hard deletion remains operator-only.
+4. V1 export is a versioned JSON envelope with separately referenced asset URLs; packaging limits are deferred until image upload/export is implemented.
+5. The operator sends Auth invitations and activates/revokes membership. RLS checks current membership state so revocation blocks app data access even if the Auth JWT remains valid.
+6. Archive is the normal retention mechanism. Permanent deletion/retention periods require a separately approved policy and backup/recovery process.
 
 No schema has been applied to Supabase by this document.
