@@ -539,47 +539,4 @@ grant insert, update on admin_api.categories to authenticated;
 grant insert, update on admin_api.listings to authenticated;
 grant insert, update on admin_api.promotions to authenticated;
 
--- 10. The earlier schema-wide revocation removed browser privileges from every
--- retained legacy table. Only the explicit new-table grants above are restored.
-grant select (
-  singleton_key, store_uid, name, slug, business_type, tagline, description,
-  phone, whatsapp, public_email, website_url, address_line, town, province,
-  country_code, logo_url, cover_image_url, brand_primary, brand_accent,
-  social_links, publication_status
-) on app_private.store_profile to anon;
-grant select (
-  singleton_key, store_uid, name, slug, business_type, tagline, description,
-  phone, whatsapp, public_email, website_url, address_line, town, province,
-  country_code, logo_url, cover_image_url, brand_primary, brand_accent,
-  social_links, publication_status, created_at, updated_at
-) on app_private.store_profile to authenticated;
-grant update (
-  name, slug, business_type, tagline, description, phone, whatsapp,
-  public_email, website_url, address_line, town, province, country_code,
-  logo_url, cover_image_url, brand_primary, brand_accent, social_links,
-  publication_status
-) on app_private.store_profile to authenticated;
-grant select (id, publication_status) on app_private.categories to anon;
-grant select (id, category_uid, name, slug, description, sort_order, publication_status, image_url)
-on app_private.categories to anon;
-grant select (id, category_uid, name, slug, description, sort_order, publication_status, image_url, created_at, updated_at)
-on app_private.categories to authenticated;
-grant insert (name, slug, description, sort_order, publication_status, image_url)
-on app_private.categories to authenticated;
-grant update (name, slug, description, sort_order, publication_status, image_url)
-on app_private.categories to authenticated;
-grant select (id, publication_status, category_id) on app_private.listings to anon;
-grant select (id, listing_uid, category_id, kind, name, slug, description, price, currency, price_unit, availability_note, publication_status, image_url, sort_order)
-on app_private.listings to anon;
-grant select (id, listing_uid, category_id, kind, name, slug, description, reference_code, price, currency, price_unit, availability_note, publication_status, image_url, sort_order, created_at, updated_at)
-on app_private.listings to authenticated;
-grant insert (category_id, kind, name, slug, description, reference_code, price, currency, price_unit, availability_note, publication_status, image_url, sort_order)
-on app_private.listings to authenticated;
-grant update (category_id, kind, name, slug, description, reference_code, price, currency, price_unit, availability_note, publication_status, image_url, sort_order)
-on app_private.listings to authenticated;
-grant select (id, promotion_uid, title, internal_copy, status, starts_at, ends_at, created_at, updated_at)
-on app_private.promotions to authenticated;
-grant insert (title, internal_copy, status, starts_at, ends_at) on app_private.promotions to authenticated;
-grant update (title, internal_copy, status, starts_at, ends_at) on app_private.promotions to authenticated;
-
 commit;
