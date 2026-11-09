@@ -1,14 +1,32 @@
 # PNG Business Digital Starter
 
-A reusable, mobile-first storefront template for PNG businesses. One master template; each customer gets their **own independent repository and deployment**. Phase 2A is complete. Phase 2B has begun: the multi-tenant Supabase development database foundation and first private owner-admin interface are implemented on the working branch. Supabase Auth/Data API dashboard configuration, owner provisioning, live storefront sync and production deployment remain gated.
+A reusable, mobile-first storefront template for Papua New Guinea businesses. The master template is maintained centrally; every customized business app is an independent single-store product with its own GitHub repository, hosting/deployment and Supabase project, all controlled by the platform operator.
+
+**Approved architecture:** one deployed app = one store = one Supabase project. A store may have one administrator or several administrators, all managing that same store. The platform operator owns and maintains the database infrastructure, schema, migrations, backups and technical operations. Store administrators are custodians of their business profile, branding and catalogue content; they do not receive database-owner or Supabase project access.
+
+The future PNG Materials Marketplace is a separate later-stage platform. This starter will preserve stable identifiers and portable data contracts so a business can connect or transfer selected data with its consent when that platform is ready.
 
 ## What it does
 
-Reads two JSON files (`business.json`, `catalogue.json`) and generates a fast static website: homepage, about, live search suggestions, a dedicated searchable results page, category filters and sorting, one page per product or service, contact (call, WhatsApp, email), social links and share buttons. The public build does not generate a Promotions page or expose Promotions navigation. Branding (name, logo, colours, cover image) comes from configuration. Invalid configuration stops the build with an error that names the file and field.
+Reads business and catalogue data and generates a fast mobile-first public storefront: homepage, about, live search suggestions, searchable results, category filters and sorting, product/service pages, contact links, social links and sharing. Public visitors browse without accounts. Public Promotions output is excluded. A separate private admin interface lets authorised store administrators maintain the store's content.
 
-**Approved product direction:** separate the public storefront and private owner-admin interfaces while sharing canonical business and catalogue data. Public Promotions remain excluded. The Phase 2B database foundation uses one shared multi-tenant Supabase development project with database-enforced tenant isolation. The separate `admin/` app provides invited-owner sign-in, password recovery, profile/brand-colour editing, categories, listings and private Promotions. It uses the Supabase publishable key only; all owner data requests use the `admin_api` schema and rely on RLS. It is not production-ready: the `admin_api` schema must first be exposed in Data API settings, Auth signups must be disabled, invitation delivery must be verified, and live storefront sync is still pending.
+Demonstration data is clearly marked. A real business must replace all sample content before public launch.
 
-## Quick start (Node.js 18+, no packages to install)
+## Architecture and project status
+
+- Each customized business app has its own repository under the platform operator's GitHub account.
+- Each app has its own hosting/deployment and its own Supabase project under the platform operator's account.
+- Each Supabase project contains data for that one store only; no shared multi-business tenant database is used for customer instances.
+- One or more invited administrators may be associated with that store. Their access is limited to that store's admin functions.
+- The platform operator controls project provisioning, database schema, migrations, backups, security configuration and maintenance.
+- Store administrators manage approved business content through the admin interface; they are not database operators.
+- No central business directory, social network, marketplace account system or cross-business admin portal is part of this starter phase.
+
+**Important implementation status:** the current Phase 2B working branch contains an earlier shared multi-tenant database implementation and an initial owner-admin interface. That implementation is a development prototype, not the approved customer-instance architecture. Its schema, policies, admin queries and tests must be redesigned and revalidated for the single-store-per-project model before it is treated as a deployable template. Do not provision customer data or invite a real store administrator into the current prototype.
+
+## Quick start
+
+Node.js 18+; no packages are required for the static build:
 
 ```
 npm run build:examples
@@ -18,31 +36,20 @@ npm run validate
 npm test
 ```
 
-Real-browser checks (optional, needs Python Playwright): `python3 tests/browser/browser-qa.py` (see `docs/testing-report.md`).
+See `docs/architecture.md`, `docs/customer-onboarding.md` and the Phase 2B documents for the current design and implementation gates.
 
-## Phase 2B backend
+## Database operations
 
-- Development project: `PNG Business Digital Starter Dev` (Sydney, Supabase Free).
-- SQL migrations: `supabase/migrations/`.
-- Owner admin source: `admin/`; static builds publish it under `/admin/`.
-- Supabase SDK is loaded from a pinned jsDelivr ESM URL (`@supabase/supabase-js` 2.119.0); internet access to that CDN is required for admin sign-in.
-- Required manual dashboard gates: see `docs/phase-2b-owner-auth-setup.md`.
-- Database design and security verification: see `docs/phase-2b-backend-architecture.md` and `docs/phase-2b-security-verification.md`.
-- Do not use this Free development project for live customer data or production.
+The platform operator is responsible for each instance's Supabase project and database lifecycle. The template must provide repeatable, version-controlled migrations and a documented provisioning procedure so the operator can create, update, back up and recover each instance consistently. Customer-facing administrators must never receive a Supabase service-role/secret key or direct database-owner credentials.
 
-## Demonstration data is clearly marked
+The existing `PNG Business Digital Starter Dev` project is a development environment for the earlier prototype only. It is not a shared production database and must not be used for live customer data. Do not delete or repurpose it until its existing schema and migration history have been reviewed and a separately approved transition plan exists.
 
-Everything shipped (`examples/*` and the starter in `business/`) has `"demo": true`. Demo builds show a yellow **DEMONSTRATION DATA** banner on every page, are marked `noindex`, prefix page titles with `[DEMO]`, label prices **"Sample:"**, and use obvious placeholder phone numbers (`+675 0000 000x`) and `example.com` emails. A real business (`"demo"` omitted or false) that still contains placeholder wording, numbers or emails **fails validation**. To onboard a real business follow `docs/customer-onboarding.md`.
+## Future marketplace compatibility
 
-## Folders
+Business, category and listing records must have stable portable identifiers and documented export/import formats. Data transfer or connection to PNG Materials Marketplace must be explicit, scoped and consent-based. The starter must remain independently useful if the marketplace is not yet available.
 
-- `src/` shared code and design system (no business content)
-- `scripts/` build, import, preview server
-- `business/` the active business for this copy (edit this)
-- `examples/` hardware supplier, general retail, service provider (demo data)
-- `docs/` documentation; `tests/` automated tests and browser QA script
-- `supabase/` version-controlled database migrations
+## Not yet implemented / not yet approved
 
-## Not yet implemented
+The independent per-store Supabase provisioning and migration workflow, redesigned single-store schema and policies, multiple-admin workflow, operator maintenance workflow, real Auth/REST/browser integration tests, image storage policies, live public-storefront data adapter, backups/recovery procedure and marketplace export/consent flow remain work items. Payments, carts, customer accounts and the future central marketplace are outside the current scope.
 
-Owner sign-in and initial private admin UI are implemented but not yet enabled for use. Invitation provisioning, logo/listing image upload, live public storefront integration, payments, carts, customer login, direct social publishing, live marketplace sync, marketplace registration or approval remain outstanding. The admin must use real Auth sessions and RLS; hiding a public link or route is not security. See `docs/architecture.md`, `docs/outstanding-issues.md` and the Phase 2B documents.
+No production deployment, merge to `main`, customer onboarding or destructive database change is authorised by this documentation revision.
