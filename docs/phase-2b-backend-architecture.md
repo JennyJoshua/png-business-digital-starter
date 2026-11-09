@@ -100,13 +100,13 @@ See [Phase 2B security verification](phase-2b-security-verification.md) for actu
 
 A separate `admin/` static application is included in the site build under `/admin/`. It uses a pinned Supabase JavaScript SDK release and the project's publishable key only. It provides invited-owner email/password sign-in, password recovery/invitation password setup, tenant membership lookup, business profile and brand-colour editing, category and listing creation/archive, and private Promotions management/deletion. It uses `supabase.schema('admin_api')` for all owner-data access.
 
-The app intentionally contains no registration flow. Newly created categories and listings are drafts; the UI does not publish them automatically. Public storefront synchronisation is not implemented, so database edits do not yet change the current static storefront. No owner account has been provisioned and the admin app has not been deployed.
+The app intentionally contains no registration flow. CI passed on the working branch, including admin JavaScript syntax validation, the complete automated test suite, starter-data validation and all demonstration builds. Newly created categories and listings are drafts; the UI does not publish them automatically. Public storefront synchronisation is not implemented, so database edits do not yet change the current static storefront. No owner account has been provisioned and the admin app has not been deployed.
 
 See [Owner Auth setup and safety gates](phase-2b-owner-auth-setup.md) for the manual dashboard configuration and invitation process. The `admin_api` schema must be exposed before the client can call it; `app_private` must remain unexposed.
 
 ## 7. Authentication and Storage still to implement
 
-The database foundation does not yet configure Auth invitation settings, create an owner account, or implement sign-in/recovery UI. Before the first owner is invited:
+The database foundation does not yet configure Auth invitation settings or create an owner account. The initial sign-in/recovery UI is implemented in `admin/`, but it cannot be used until the dashboard gates are completed. Before the first owner is invited:
 - Verify public sign-up is disabled or otherwise ensure only operator-invited accounts can receive a membership.
 - Confirm email delivery and recovery behaviour.
 - Provision the owner membership through a trusted operator process.
