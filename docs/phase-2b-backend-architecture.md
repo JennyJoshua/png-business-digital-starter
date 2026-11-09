@@ -1,6 +1,6 @@
 # Phase 2B — Owner Admin Backend Architecture
 
-**Status:** Core multi-tenant database foundation and API view layer implemented and verified on the approved development project. Owner authentication, admin UI, Storage upload policies and public storefront integration remain future steps on `phase-2b/owner-admin-interface-foundation`.
+**Status:** Core multi-tenant database foundation, API view layer and initial static owner-admin application implemented on the approved development project branch. Supabase Auth/Data API dashboard configuration, real owner provisioning, Storage upload policies and public storefront integration remain outstanding.
 
 **Purpose:** Provide a secure, affordable and marketplace-ready foundation for the private business-owner admin while preserving the existing static public storefront.
 
@@ -96,7 +96,15 @@ Business creation, owner invitation and membership provisioning remain operator-
 
 See [Phase 2B security verification](phase-2b-security-verification.md) for actual checks and results.
 
-## 6. Authentication and Storage still to implement
+## 6. Initial owner-admin application
+
+A separate `admin/` static application is included in the site build under `/admin/`. It uses a pinned Supabase JavaScript SDK release and the project's publishable key only. It provides invited-owner email/password sign-in, password recovery/invitation password setup, tenant membership lookup, business profile and brand-colour editing, category and listing creation/archive, and private Promotions management/deletion. It uses `supabase.schema('admin_api')` for all owner-data access.
+
+The app intentionally contains no registration flow. Newly created categories and listings are drafts; the UI does not publish them automatically. Public storefront synchronisation is not implemented, so database edits do not yet change the current static storefront. No owner account has been provisioned and the admin app has not been deployed.
+
+See [Owner Auth setup and safety gates](phase-2b-owner-auth-setup.md) for the manual dashboard configuration and invitation process. The `admin_api` schema must be exposed before the client can call it; `app_private` must remain unexposed.
+
+## 7. Authentication and Storage still to implement
 
 The database foundation does not yet configure Auth invitation settings, create an owner account, or implement sign-in/recovery UI. Before the first owner is invited:
 - Verify public sign-up is disabled or otherwise ensure only operator-invited accounts can receive a membership.
@@ -106,13 +114,13 @@ The database foundation does not yet configure Auth invitation settings, create 
 
 Storage bucket/object policies are not yet created. Logo and listing image upload must wait until a bucket strategy and tenant-path policies are reviewed. Public assets and private documents must not share an indiscriminately public bucket.
 
-## 7. Supabase project and Free-plan operations
+## 8. Supabase project and Free-plan operations
 
 The Digital Starter development project is separate from other projects. PNG Alert was selected by the user for temporary pausing to free the Free-plan active-project slot; the project is now confirmed INACTIVE. No other existing project was changed.
 
 Supabase Free projects are for development/testing only. A paused Free project has a 90-day one-click restore window; pause is not a backup. Maintain independent database and Storage backups before planned pauses. Before public launch, approve a paid production arrangement and migration/recovery plan.
 
-## 8. Migrations and implementation record
+## 9. Migrations and implementation record
 
 Version-controlled SQL migrations:
 
@@ -122,13 +130,12 @@ Version-controlled SQL migrations:
 
 Applied migration versions on the development project match these files. The SQL schema has been checked against the live project after application.
 
-## 9. Next sequence
+## 10. Next sequence
 
-1. Verify Data API exposed schemas and Auth invitation settings.
-2. Implement secure owner authentication and operator-controlled invitation/provisioning.
-3. Build the private mobile-first admin UI.
-4. Add Storage bucket/object policies and image management.
-5. Connect the static storefront to the public views behind a tested adapter.
-6. Add the versioned marketplace export contract and owner consent flow.
+1. Complete the dashboard settings and email-delivery gates in [Owner Auth setup](phase-2b-owner-auth-setup.md).
+2. Provision and test the first real owner only after explicit business and email approval.
+3. Add Storage bucket/object policies and image management.
+4. Connect the static storefront to the public views behind a tested adapter.
+5. Add the versioned marketplace export contract and owner consent flow.
 
 No production deployment or merge to `main` is authorized by this work.
