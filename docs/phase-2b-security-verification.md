@@ -65,3 +65,15 @@ All three SQL files are version-controlled under `supabase/migrations/`.
 5. Repeat the security tests whenever RLS policies, grants, views or tenant relationships change.
 
 **Scope:** This verifies the core database boundary only. It does not mean the admin UI, authentication workflow, Storage uploads or production readiness are complete.
+
+
+## Owner-admin application security review
+
+- Browser client uses only the Supabase publishable key; no secret/service-role key is included.
+- Every owner-data request is explicitly scoped to `admin_api`.
+- The application contains no public registration flow.
+- New categories/listings default to draft; archive actions do not hard-delete them.
+- Promotions are managed only in the authenticated owner area and remain absent from public storefront output.
+- CI passed JavaScript syntax validation, automated tests, starter-data validation and demonstration builds.
+
+**Not yet end-to-end verified:** Supabase Data API exposure for `admin_api`, Auth signup/anonymous settings, invitation/recovery email delivery, actual browser sign-in and owner CRUD through the REST API. These remain go-live blockers; see [Owner Auth setup](phase-2b-owner-auth-setup.md).
