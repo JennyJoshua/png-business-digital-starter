@@ -1,142 +1,130 @@
-# Phase 2B — Owner Admin Backend Architecture
+# Phase 2B — Backend Architecture
 
-**Status:** Core multi-tenant database foundation, API view layer and initial static owner-admin application implemented on the approved development project branch. Supabase Auth/Data API dashboard configuration, real owner provisioning, Storage upload policies and public storefront integration remain outstanding.
+**Architecture status:** revised and approved direction; implementation redesign required.  
+**Working branch:** `phase-2b/independent-single-store-architecture`
 
-**Purpose:** Provide a secure, affordable and marketplace-ready foundation for the private business-owner admin while preserving the existing static public storefront.
+## 1. Purpose
 
-## 1. Current baseline and constraints
+Provide a secure, repeatable backend for the private administrator interface while keeping the public storefront independent and mobile-first. Every customized business app is a separate single-store instance. The platform operator maintains the technical infrastructure; the business's administrators maintain business content.
 
-- Phase 2A is merged into `main`. Public Promotions output is removed; public search is implemented.
-- The existing app is a zero-runtime-dependency Node.js static generator. It has no login, server, database or persistent owner editing.
-- Each customer continues to receive an independent storefront repository and deployment.
-- The data contract preserves stable business/category/listing identifiers for future owner-consented PNG Materials Marketplace onboarding.
-- Free Supabase projects are development/testing only. Plan and approve a suitable paid production environment, backups and operations before public launch or live customer data.
+This document defines the target architecture. It does not claim that the current Phase 2B prototype has already been converted or tested against it.
 
-## 2. Approved architecture decisions
+## 2. Approved deployment topology
 
-- **Provider:** Supabase.
-- **Topology:** one shared multi-tenant backend project for all Digital Starter storefronts, rather than one project per business.
-- **Project:** `PNG Business Digital Starter Dev` (`rwcwvqlgyckfdrglsbfg`), Sydney region (`ap-southeast-2`), Free development project.
-- **Separation:** this project is separate from PNG Materials Marketplace and PNG Alert.
-- **Owner onboarding:** invitation-only provisioning for the pilot; no self-service business-owner registration.
-- **Initial role:** owner only in v1. Membership authorization comes from database rows, never editable user metadata.
-- **Storefronts:** independent static deployments; public and private interfaces are separate surfaces but share canonical records.
+**One app instance = one business/store = one Supabase project.**
 
-## 3. Logical data model
+Each customer instance receives:
+- Its own GitHub repository under the platform operator's account.
+- Its own hosting and deployment.
+- Its own Supabase project under the platform operator's account.
+- Its own database containing only that store's records.
+- Its own public storefront and private admin interface.
 
-UUID primary keys are internal. Stable external identifiers are retained for business, category and listing portability.
+Instances are isolated from one another by project/database boundaries, not by a shared multi-tenant business-membership model. A compromise or data query in one instance must not expose another business's data.
 
-| Table | Purpose | Visibility |
+The platform operator is responsible for creating and maintaining each project, controlling database access, applying reviewed migrations, monitoring, backups and recovery. Store owners/admins do not need Supabase dashboard access and must not receive database-owner credentials or privileged keys.
+
+The existing `PNG Business Digital Starter Dev` project (`rwcwvqlgyckfdrglsbfg`, Sydney) contains the earlier shared multi-tenant prototype. It is not the approved customer-instance pattern. Do not delete it, apply a destructive conversion, or place live customer data in it. Review it separately and decide its future only through an approved transition plan.
+
+## 3. Roles and responsibility boundaries
+
+| Actor | Responsibilities | Must not receive |
 |---|---|---|
-| `app_private.businesses` | Canonical business profile, stable `business_id`, publication status | Published allowlisted fields through public view; owner full record |
-| `app_private.business_memberships` | Maps Auth users to businesses and role/status | Owner's own active membership only |
-| `app_private.categories` | Business-specific categories and stable category IDs | Published rows through public view; owner rows |
-| `app_private.listings` | Product/service catalogue, stable listing IDs, price/currency, publication state | Published rows through public view; owner rows |
-| `app_private.business_private_settings` | Private notes and operational metadata | Active business members |
-| `app_private.promotions` | Owner-created promotional drafts and internal copy | Private to authorized owners in v1 |
-| `app_private.asset_metadata` | Storage object paths, visibility and ownership metadata | Authorized owners |
+| Platform operator (template owner) | Owns GitHub repos and Supabase projects; provisions instances; maintains schema, migrations, security, backups, hosting configuration and technical operations | — |
+| Store owner / administrator | Maintains that store's business name/profile, branding, logo, contact details, categories, products/services, catalogue content and permitted promotions | Supabase project-owner access, database credentials, service-role/secret keys, access to another store |
+| Public visitor | Browses and searches published store content without registration | Private admin data or admin actions |
 
-### Public data contract
+A store may have one administrator or several administrators. All administrators in a particular app instance belong to the same store and have the same store boundary. A later role/permission distinction (for example, owner versus catalogue editor) requires a separate product decision; do not silently invent elevated roles.
 
-Three explicit allowlist views are provided in `public`:
+## 4. Target logical data model
 
-- `storefront_businesses`
-- `storefront_categories`
-- `storefront_listings`
+The single-store database should not require a business-to-many-tenant abstraction. It may contain a singleton store/profile record and store-scoped content tables.
 
-All are created with `security_invoker = true`, so underlying table privileges and RLS are applied to the requesting role. Anonymous `SELECT` is granted on only the three base tables used by these views; existing RLS policies restrict results to published businesses and published catalogue records belonging to published businesses. Promotions, memberships, private settings and asset metadata are not included.
+| Logical record | Purpose | Access |
+|---|---|---|
+| `store_profile` | One canonical store profile, stable portable store ID, name, slug/type, brand and publication state | Public allowlisted fields; administrators may edit permitted fields |
+| `store_admins` | Maps Auth users to this instance's store and active admin status | Operator provisions; admins may read their own membership only |
+| `categories` | Store categories with stable portable IDs and archive/publication state | Public published rows; authenticated store admins manage |
+| `listings` | Products/services, stable portable IDs, descriptions, price/currency and publication state | Public published rows; authenticated store admins manage |
+| `promotions` | Store promotions and campaign content | Private admin management; public placement remains excluded unless separately approved |
+| `asset_metadata` | Logo/listing image paths, ownership and visibility metadata | Store admins within approved upload rules; public only for explicitly public assets |
+| `store_settings` | Private store-specific operational settings | Store admins for approved settings; operator retains infrastructure control |
 
-### Owner API contract
+The precise physical schema, constraints and grants must be designed in a reviewed migration before implementation. A singleton store record should be enforced at database level. Stable external IDs must be immutable through ordinary admin operations. Prefer archive/status transitions to destructive deletion where records may be referenced by exports or future marketplace integration.
 
-An `admin_api` schema contains seven security-invoker views corresponding to the seven application tables. The views are granted only to `authenticated`; the schema has no `anon` usage grant. These views are simple/updatable where appropriate, but underlying column grants and RLS remain authoritative. Memberships are read-only to owners.
+### Multi-admin model
 
-**Dashboard configuration:** The user confirmed that `admin_api` was added to the Supabase Data API exposed-schema list and saved, retaining `public` and keeping `app_private` unexposed. The setting still needs a real REST/browser request verification; database schema grants alone do not prove the Data API allowlist.
+The `store_admins` relationship supports multiple Auth users for the one store in that project. The operator provisions and revokes administrator membership through a trusted process. The browser client must not be able to add itself, promote itself, or grant another user access. RLS and database grants must verify an active membership for the current Auth user.
 
-### Data rules
+Because each project belongs to one store, policies should be simpler than the previous cross-tenant membership design. Nevertheless, every exposed table and view must have deliberate grants and RLS. Do not rely on an unguessable ID, hidden UI route, or authenticated role alone as authorization.
 
-- Business-owned records carry a business foreign key.
-- A user may belong to more than one business; a business can support multiple membership rows.
-- The v1 role constraint permits only `owner`.
-- Stable external identifiers are not updateable through normal owner table grants. Categories/listings are archived rather than hard-deleted.
-- Prices are numeric with explicit ISO currency codes (default `PGK`).
-- Promotions are excluded from public views.
-- Public views use explicit column lists; no `select *` public contract.
+## 5. Public and administrator interfaces
 
-## 4. Authorization and publication model
+- Public storefront and private admin are separate application surfaces.
+- Public visitors do not register or log in to browse.
+- Public REST access returns only explicitly allowlisted fields for published store profile, categories and listings.
+- Draft/archived records and private settings are not public.
+- Promotions are managed in the admin interface and are not rendered in public navigation, pages, banners or placements under the current product decision.
+- Admin data access uses the intended private/admin API surface and RLS. Never put a service-role or secret key in browser code.
+- Public storefront content must be driven by the canonical per-instance data source after a tested adapter is implemented. Until then, static sample/config data remains a prototype/fallback and must not be represented as live-synchronised.
 
-### Anonymous visitor
+For Supabase views, use `security_invoker = true` where supported and verify underlying grants/RLS. Views are not automatically safe merely because their source tables have RLS.
 
-- Can read only published business fields through `public.storefront_businesses`.
-- Can read only published categories/listings belonging to a published business through the other two views.
-- Has no table privilege for memberships, private settings, Promotions or asset metadata.
-- Cannot write business/catalogue/admin data.
+## 6. Operator maintenance and repeatability
 
-### Authenticated owner
+The template must support repeatable operation across many independent Supabase projects:
+1. Create a new project for the business instance under the operator's account.
+2. Apply the version-controlled baseline migrations.
+3. Apply per-instance configuration and secure Auth settings.
+4. Provision the first store record and initial administrator through a trusted operator-only process.
+5. Verify REST/browser behaviour and security acceptance tests.
+6. Connect the instance's public site and admin app to only that project's URL and publishable key.
+7. Record project/repository/deployment references in an operator-controlled register.
+8. Maintain schema versions, backups, restore instructions and a tested upgrade procedure.
 
-- Reads businesses and catalogue rows only when an active membership exists for that business.
-- Creates/updates categories and listings only within a business for which they hold an active owner membership.
-- Can access private settings and Promotions only for their own business.
-- Cannot create or update membership records, self-promote, or change stable tenant/listing/category identifiers through normal table grants.
+Migration files must be idempotent where practical, ordered, reviewed and tested against a clean disposable project before being applied to a customer instance. The operator must be able to identify which migration version each instance is running. Never use a browser-exposed key for operator maintenance.
+
+The operator's maintenance access must be protected by the account's own security controls. Store administrators should not be asked to perform SQL, manage migrations or maintain backups.
+
+## 7. Data portability and future PNG Materials Marketplace
+
+This starter is an independent business storefront, not the central marketplace platform. It must preserve:
+- Stable store, category and listing identifiers.
+- Documented, versioned JSON export/import formats.
+- Explicit field mapping and currency/price semantics.
+- Owner-controlled export and consent before data is shared with the future marketplace.
+- A way to revoke future synchronisation consent and understand what data was shared.
+
+Do not build a Facebook-like central business directory, shared marketplace profiles, cross-business accounts or central marketplace admin now. Those belong to a later PNG Materials Marketplace phase. Avoid coupling each store's runtime availability to the future platform.
+
+## 8. Security requirements
+
+- RLS enabled on every exposed table.
+- Least-privilege grants for `anon` and `authenticated`.
+- No client-side service-role/secret keys.
+- Admin policies verify an active membership for `auth.uid()`; `TO authenticated` alone is not authorization.
 - UPDATE policies include both `USING` and `WITH CHECK`.
+- Admin membership provisioning is operator-controlled.
+- Public views expose explicit columns only and exclude private fields.
+- Storage bucket and object policies are designed before uploads are enabled.
+- Auth signup is not open to the public; initial admin accounts are provisioned/invited by the operator.
+- Review Supabase Security and Performance Advisors after schema changes.
 
-### Trusted operator
+## 9. Current prototype versus target
 
-Business creation, owner invitation and membership provisioning remain operator-controlled. No user can self-assign a membership through the client. Any future privileged key must remain server-side and must never enter public HTML, JavaScript, source maps or customer configuration.
+The current working branch contains a prior shared multi-tenant schema with business memberships, tenant-scoped policies, public views, `admin_api` views and an initial static admin interface. Some SQL role-simulation tests passed for that prototype. Those results are historical evidence for the old design only; they do not prove the target single-store architecture.
 
-## 5. Implemented database safeguards
+The existing development database is empty of real customer records and has no owner account. Preserve it until a transition decision is made. Do not claim the current admin UI is compatible with the target until its membership lookup, data model, API calls, provisioning and tests have been reviewed and changed.
 
-- Seven application tables in `app_private`; RLS enabled on all seven.
-- 22 policies across public reads, owner reads/writes and private data.
-- Membership checks use protected `business_memberships` rows and `auth.uid()`, not user metadata.
-- Least-privilege grants separate anonymous published storefront reads, owner writes and operator provisioning.
-- Public and owner API views use `security_invoker = true`.
-- `admin_api` is not granted to anonymous users; membership view is not insertable/updateable by authenticated owners due to grants.
-- No SECURITY DEFINER function was added.
-- Foreign keys used by ownership lookups have indexes; remaining unused-index advisor messages are informational on a new empty schema.
+## 10. Next steps
 
-See [Phase 2B security verification](phase-2b-security-verification.md) for actual checks and results.
+1. Freeze the old shared-tenant design as a prototype; no customer onboarding or production use.
+2. Finalise the single-store schema, multiple-admin membership model and operator provisioning/maintenance contract.
+3. Update the implementation plan and security acceptance tests for one project per store.
+4. Implement the new migrations and adapt the admin UI without destructive changes to the existing development project.
+5. Test the baseline on a clean disposable Supabase project, including multiple admins of one store.
+6. Implement and test public REST data access and the live storefront adapter.
+7. Document backup/restore, per-instance upgrade and operator register procedures.
+8. Review the future marketplace export/consent contract.
 
-## 6. Initial owner-admin application
-
-A separate `admin/` static application is included in the site build under `/admin/`. It uses a pinned Supabase JavaScript SDK release and the project's publishable key only. It provides invited-owner email/password sign-in, password recovery/invitation password setup, tenant membership lookup, business profile and brand-colour editing, category and listing creation/archive, and private Promotions management/deletion. It uses `supabase.schema('admin_api')` for all owner-data access.
-
-The app intentionally contains no registration flow. CI passed on the working branch, including admin JavaScript syntax validation, the complete automated test suite, starter-data validation and all demonstration builds. Newly created categories and listings are drafts; the UI does not publish them automatically. Public storefront synchronisation is not implemented, so database edits do not yet change the current static storefront. No owner account has been provisioned and the admin app has not been deployed.
-
-See [Owner Auth setup and safety gates](phase-2b-owner-auth-setup.md) for the manual dashboard configuration and invitation process. The `admin_api` schema must be exposed before the client can call it; `app_private` must remain unexposed.
-
-## 7. Authentication and Storage still to implement
-
-The database foundation does not yet configure Auth invitation settings or create an owner account. The initial sign-in/recovery UI is implemented in `admin/`, but it cannot be used until the dashboard gates are completed. Before the first owner is invited:
-- Verify public sign-up is disabled or otherwise ensure only operator-invited accounts can receive a membership.
-- Confirm email delivery and recovery behaviour.
-- Provision the owner membership through a trusted operator process.
-- Test session expiry and membership suspension.
-
-Storage bucket/object policies are not yet created. Logo and listing image upload must wait until a bucket strategy and tenant-path policies are reviewed. Public assets and private documents must not share an indiscriminately public bucket.
-
-## 8. Supabase project and Free-plan operations
-
-The Digital Starter development project is separate from other projects. PNG Alert was selected by the user for temporary pausing to free the Free-plan active-project slot; the project is now confirmed INACTIVE. No other existing project was changed.
-
-Supabase Free projects are for development/testing only. A paused Free project has a 90-day one-click restore window; pause is not a backup. Maintain independent database and Storage backups before planned pauses. Before public launch, approve a paid production arrangement and migration/recovery plan.
-
-## 9. Migrations and implementation record
-
-Version-controlled SQL migrations:
-
-- `supabase/migrations/20261109000651_phase_2b_owner_admin_core.sql`
-- `supabase/migrations/20261109000726_phase_2b_public_read_and_fk_indexes.sql`
-- `supabase/migrations/20261109001259_phase_2b_admin_api_views.sql`
-- `supabase/migrations/20261109002919_phase_2b_public_storefront_read_grants.sql`
-
-Applied migration versions on the development project match these files. The SQL schema has been checked against the live project after application.
-
-## 10. Next sequence
-
-1. Verify the user-saved Data API exposed-schema configuration through real REST requests, then complete Auth invitation-only settings and email-delivery gates in [Owner Auth setup](phase-2b-owner-auth-setup.md).
-2. Provision and test the first real owner only after explicit business and email approval.
-3. Add Storage bucket/object policies and image management.
-4. Connect the static storefront to the public views behind a tested adapter.
-5. Add the versioned marketplace export contract and owner consent flow.
-
-No production deployment or merge to `main` is authorized by this work.
+No production deployment, merge to `main`, customer onboarding or destructive database conversion is authorised by this architecture document.
