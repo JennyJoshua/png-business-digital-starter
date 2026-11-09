@@ -51,6 +51,7 @@ Provider, tenant model, project, owner onboarding direction and initial role are
 - Configure the Data API schema allowlist and Auth settings using [Owner Auth setup](phase-2b-owner-auth-setup.md).
 - Test email invitation delivery before inviting a real owner; no owner account has been provisioned.
 - Never expose a secret/service-role key in browser code.
+- CI passed admin JavaScript syntax validation, automated tests, starter-data validation and demonstration builds; end-to-end Auth/Data API testing remains blocked on dashboard configuration.
 
 ### 2B.5 — Complete private admin interface
 **Partially implemented**
