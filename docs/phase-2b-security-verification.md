@@ -8,12 +8,13 @@
 
 ## Implemented foundation
 
-- Seven application tables under `app_private`.
-- RLS enabled on all seven tables.
+- Seven application tables under `app_private`; RLS enabled on all seven.
 - 22 policies covering anonymous publication reads, active-owner reads/writes and private data.
 - Three explicit public views: `public.storefront_businesses`, `public.storefront_categories`, `public.storefront_listings`.
-- Views use `security_invoker = true` and explicit field lists.
+- Seven security-invoker views under `admin_api`, granted only to authenticated users.
+- Public and admin views use explicit column lists and invoke underlying table privileges/RLS.
 - Promotions, memberships, private settings and asset metadata are not included in public views.
+- The `admin_api` schema is not yet enabled in the Data API exposed-schema list; do not connect the admin browser client until it is deliberately exposed. Keep `app_private` unexposed.
 - No SECURITY DEFINER function was created.
 - Membership writes are not granted to authenticated users; stable external identifiers are not updateable through normal owner grants.
 
@@ -36,6 +37,11 @@ Temporary fixtures used two test Auth users and two business tenants. The SQL ch
 | Authenticated role cannot update memberships or self-promote | PASS — no UPDATE privilege |
 | Authenticated role cannot insert businesses directly | PASS — no INSERT privilege |
 | Owner cannot update stable business identifier | PASS — no column UPDATE privilege |
+| Owner API view returns only the signed-in owner's business | PASS |
+| Owner API membership view returns only own active membership | PASS |
+| Anonymous role has no usage on `admin_api` | PASS |
+| Anonymous role has no SELECT on admin Promotions view | PASS |
+| Authenticated role cannot insert/update membership view | PASS — no privileges |
 
 ## Supabase advisors
 
@@ -46,14 +52,15 @@ Temporary fixtures used two test Auth users and two business tenants. The SQL ch
 
 - `20261109000651` — `phase_2b_owner_admin_core`
 - `20261109000726` — `phase_2b_public_read_and_fk_indexes`
+- `20261109001259` — `phase_2b_admin_api_views`
 
-Both SQL files are version-controlled under `supabase/migrations/`.
+All three SQL files are version-controlled under `supabase/migrations/`.
 
 ## Important remaining checks
 
-1. Confirm `app_private` is not included in the project's exposed Data API schema list; keep only the intended public API schema exposed.
+1. Verify and configure the project's exposed Data API schema list before client integration: expose `public` and `admin_api` as required, never `app_private`.
 2. Configure and verify Auth invitation-only settings before any owner account is provisioned.
-3. Test through the actual Supabase REST/Data API and browser client after Auth configuration, not only via SQL role simulation.
+3. Test through the actual Supabase REST/Data API and browser client after schema exposure and Auth configuration, not only via SQL role simulation.
 4. Add Storage bucket/object policies before enabling image upload.
 5. Repeat the security tests whenever RLS policies, grants, views or tenant relationships change.
 
