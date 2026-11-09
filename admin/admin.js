@@ -5,6 +5,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_PYBO0dmreYrpVVRx3tUr4A_iv7Nq_yD
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true, flowType: "pkce" }
 });
+const adminDb = supabase.schema('admin_api');
 
 const $ = (s) => document.querySelector(s);
 const authPanel = $("#auth-panel"), appPanel = $("#app-panel"), authMessage = $("#auth-message"), appMessage = $("#app-message");
@@ -43,12 +44,12 @@ function friendlyError(error) {
 }
 async function loadBusiness() {
   message(appMessage, "Checking your business access…");
-  const m = await supabase.from("business_memberships").select("business_id,role,status").eq("status","active");
+  const m = await adminDb.from("business_memberships").select("business_id,role,status").eq("status","active");
   if (m.error) throw m.error;
   if (!m.data?.length) throw new Error("Your account is signed in, but it has no active business-owner access. Ask the administrator to complete your business invitation.");
   const memberships = m.data;
   const ids = memberships.map(x => x.business_id);
-  const b = await supabase.from("businesses").select("*").in("id", ids).order("created_at");
+  const b = await adminDb.from("businesses").select("*").in("id", ids).order("created_at");
   if (b.error) throw b.error;
   if (!b.data?.length) throw new Error("Your owner membership exists, but its business record could not be loaded. Contact the administrator.");
   currentBusiness = b.data[0];
@@ -63,21 +64,21 @@ async function loadBusiness() {
   else showApp();
 }
 async function loadCategories() {
-  const r = await supabase.from("categories").select("id,category_id,name,slug,description,sort_order,publication_status").eq("business_id",currentBusinessId).order("sort_order").order("name");
+  const r = await adminDb.from("categories").select("id,category_id,name,slug,description,sort_order,publication_status").eq("business_id",currentBusinessId).order("sort_order").order("name");
   if (r.error) throw r.error;
   categories = r.data || [];
   $("#categories-list").innerHTML = categories.length ? categories.map(c => `<article class="record"><div><strong>${esc(c.name)}</strong><small>${esc(c.publication_status)} · ID ${esc(c.category_id)}</small></div><div class="record-actions">${c.publication_status !== "archived" ? `<button class="outline" data-archive-category="${esc(c.id)}" type="button">Archive</button>` : ""}</div></article>`).join("") : '<p class="empty-state">No categories yet. Add your first category above.</p>';
   $("#listing-form").elements.category_id.innerHTML = '<option value="">No category</option>' + categories.filter(c=>c.publication_status!=="archived").map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("");
 }
 async function loadListings() {
-  const r = await supabase.from("listings").select("id,listing_id,category_id,kind,name,description,price,currency,availability_status,publication_status").eq("business_id",currentBusinessId).order("sort_order").order("name");
+  const r = await adminDb.from("listings").select("id,listing_id,category_id,kind,name,description,price,currency,availability_status,publication_status").eq("business_id",currentBusinessId).order("sort_order").order("name");
   if (r.error) throw r.error;
   listings = r.data || [];
   const catName = id => categories.find(c=>c.id===id)?.name || "Uncategorised";
   $("#listings-list").innerHTML = listings.length ? listings.map(l => `<article class="record"><div><strong>${esc(l.name)}</strong><small>${esc(l.kind)} · ${esc(catName(l.category_id))} · ${l.price == null ? "Price on request" : "PGK " + Number(l.price).toFixed(2)} · ${esc(l.publication_status)}</small></div><div class="record-actions">${l.publication_status !== "archived" ? `<button class="outline" data-archive-listing="${esc(l.id)}" type="button">Archive</button>` : ""}</div></article>`).join("") : '<p class="empty-state">No products or services yet. Add your first listing above.</p>';
 }
 async function loadPromotions() {
-  const r = await supabase.from("promotions").select("id,title,internal_copy,status,starts_at,ends_at").eq("business_id",currentBusinessId).order("created_at",{ascending:false});
+  const r = await adminDb.from("promotions").select("id,title,internal_copy,status,starts_at,ends_at").eq("business_id",currentBusinessId).order("created_at",{ascending:false});
   if (r.error) throw r.error;
   promotions = r.data || [];
   $("#promotions-list").innerHTML = promotions.length ? promotions.map(p => `<article class="record"><div><strong>${esc(p.title)}</strong><small>Private · ${esc(p.status)}${p.starts_at ? " · Starts " + esc(new Date(p.starts_at).toLocaleString()) : ""}</small></div><div class="record-actions"><button class="outline" data-delete-promotion="${esc(p.id)}" type="button">Delete</button></div></article>`).join("") : '<p class="empty-state">No private promotions saved.</p>';
@@ -124,7 +125,7 @@ $("#profile-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget;
   const payload={};
   for(const n of ["name","business_type","tagline","description","phone","whatsapp","email","website_url","address_line","town","province"]) payload[n]=value(f,n)||null;
-  const r=await supabase.from("businesses").update(payload).eq("id",currentBusinessId).select().single();
+  const r=await adminDb.from("businesses").update(payload).eq("id",currentBusinessId).select().single();
   if(r.error){message(appMessage,friendlyError(r.error));return;}
   currentBusiness={...currentBusiness,...r.data};$("#welcome-title").textContent=currentBusiness.name;message(appMessage,"Business profile saved.",true);
 });
@@ -132,7 +133,7 @@ $("#category-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget,name=value(f,"name"),description=value(f,"description");
   const categorySlug=slug(name); if(!categorySlug){message(appMessage,"Use letters or numbers in the category name.");return;}
   const payload={business_id:currentBusinessId,category_id:categorySlug,name,slug:categorySlug,description:description||null,sort_order:categories.length,publication_status:"draft"};
-  const r=await supabase.from("categories").insert(payload);
+  const r=await adminDb.from("categories").insert(payload);
   if(r.error){message(appMessage,friendlyError(r.error));return;}
   f.reset();await refreshAll();message(appMessage,"Category added as a draft. Publish it only after reviewing it.",true);
 });
@@ -141,7 +142,7 @@ $("#listing-form").addEventListener("submit",async e=>{
   const listingSlug=slug(name); if(!listingSlug){message(appMessage,"Use letters or numbers in the listing name.");return;}
   const payload={business_id:currentBusinessId,listing_id:listingSlug,category_id:value(f,"category_id")||null,kind:value(f,"kind"),name,slug:listingSlug,description:value(f,"description")||null,price:price===""?null:Number(price),currency:"PGK",availability_status:value(f,"availability_status")||null,publication_status:"draft",sort_order:listings.length};
   if(price!==""&&(!Number.isFinite(payload.price)||payload.price<0)){message(appMessage,"Enter a valid non-negative price.");return;}
-  const r=await supabase.from("listings").insert(payload);
+  const r=await adminDb.from("listings").insert(payload);
   if(r.error){message(appMessage,friendlyError(r.error));return;}
   f.reset();await refreshAll();message(appMessage,"Listing added as a draft. Review it before publishing.",true);
 });
@@ -149,16 +150,16 @@ $("#promotion-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget,starts=value(f,"starts_at"),ends=value(f,"ends_at");
   const payload={business_id:currentBusinessId,title:value(f,"title"),internal_copy:value(f,"internal_copy")||null,status:value(f,"status"),starts_at:isoDate(starts),ends_at:isoDate(ends)};
   if(starts&&ends&&new Date(ends)<=new Date(starts)){message(appMessage,"The end date must be after the start date.");return;}
-  const r=await supabase.from("promotions").insert(payload);
+  const r=await adminDb.from("promotions").insert(payload);
   if(r.error){message(appMessage,friendlyError(r.error));return;}
   f.reset();await loadPromotions();updateCounts();message(appMessage,"Private promotion saved. It is not shown publicly.",true);
 });
 document.addEventListener("click",async e=>{
   const cat=e.target.closest("[data-archive-category]"),listing=e.target.closest("[data-archive-listing]"),promo=e.target.closest("[data-delete-promotion]");
   let r;
-  if(cat){if(!confirm("Archive this category? Existing listings will remain, but the category will no longer be available for new listings."))return;r=await supabase.from("categories").update({publication_status:"archived"}).eq("id",cat.dataset.archiveCategory);}
-  if(listing){if(!confirm("Archive this listing? It will no longer appear in the public catalogue."))return;r=await supabase.from("listings").update({publication_status:"archived"}).eq("id",listing.dataset.archiveListing);}
-  if(promo){if(!confirm("Delete this private promotion? This cannot be undone."))return;r=await supabase.from("promotions").delete().eq("id",promo.dataset.deletePromotion);}
+  if(cat){if(!confirm("Archive this category? Existing listings will remain, but the category will no longer be available for new listings."))return;r=await adminDb.from("categories").update({publication_status:"archived"}).eq("id",cat.dataset.archiveCategory);}
+  if(listing){if(!confirm("Archive this listing? It will no longer appear in the public catalogue."))return;r=await adminDb.from("listings").update({publication_status:"archived"}).eq("id",listing.dataset.archiveListing);}
+  if(promo){if(!confirm("Delete this private promotion? This cannot be undone."))return;r=await adminDb.from("promotions").delete().eq("id",promo.dataset.deletePromotion);}
   if(r){if(r.error){message(appMessage,friendlyError(r.error));return;}await refreshAll();message(appMessage,"Changes saved.",true);}
 });
 
