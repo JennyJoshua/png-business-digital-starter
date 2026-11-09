@@ -227,6 +227,6 @@ test('owner admin: private app is included in each static build without public s
     assert.ok(!/signUp\\s*\\(/i.test(app), 'owner app must not expose public registration');
     assert.ok(app.includes('sb_publishable_'));
     assert.ok(!/service_role|sb_secret_|SUPABASE_SERVICE_ROLE/i.test(app), 'privileged Supabase credentials must never be shipped to browsers');
-    assert.ok(app.includes('business_memberships') && app.includes('admin_api') === false);
+    assert.ok(app.includes('business_memberships') && app.includes("schema('admin_api')"));
   }
 });
