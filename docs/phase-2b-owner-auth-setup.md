@@ -3,7 +3,7 @@
 **Project:** PNG Business Digital Starter Dev  
 **Project ref:** `rwcwvqlgyckfdrglsbfg`  
 **Dashboard:** https://supabase.com/dashboard/project/rwcwvqlgyckfdrglsbfg  
-**Status:** Public signup is disabled and verified. GitHub Pages is the selected host. The Pages deployment currently serves the public demo storefront; the Phase 2B admin app is on an unmerged branch and is not yet deployed. Site URL/redirect allow-list and invitation delivery remain outstanding.
+**Status:** Public signup is disabled and verified. GitHub Pages is the selected host. The Pages project site is live (HTTP 200) and currently serves the public demo storefront. The `/admin/` path currently returns HTTP 404 because the Phase 2B admin app remains on an unmerged branch. Site URL/redirect allow-list and invitation delivery remain outstanding.
 
 ## 1. Data API schema exposure
 
@@ -42,13 +42,13 @@ GitHub Pages is the selected host for the owner-admin interface.
 **Expected owner-admin URL:**
 `https://jennyjoshua.github.io/png-business-digital-starter/admin/`
 
-These are the expected addresses based on the public repository name and GitHub Pages project-site convention. The Pages URL must be confirmed in the repository's Pages settings or from a successful deployment before it is treated as live.
+The project-site URL has been confirmed live with HTTP 200. The `/admin/` path currently returns HTTP 404 and is not yet deployed. The expected admin URL will become live only after the owner-admin foundation is approved, merged, and successfully deployed.
 
 ### Existing deployment workflow
 
 The repository already has `.github/workflows/deploy-pages.yml` on `main`. It deploys the generated `dist/` directory to GitHub Pages on pushes to `main` and manual workflow dispatch. On current `main`, the build publishes the public demonstration storefront.
 
-The Phase 2B owner-admin foundation branch changes the build script to copy the private admin app into `dist/admin/`. Once that branch is reviewed and merged, the existing Pages workflow will include `/admin/` in the Pages artifact and publish it on the next successful main deployment. Until then, the owner-admin page is not part of the live Pages site. No deployment has been triggered by this setup work.
+The Phase 2B owner-admin foundation branch changes the build script to copy the private admin app into `dist/admin/`. Once that branch is reviewed and merged, the existing Pages workflow will include `/admin/` in the Pages artifact and publish it on the next successful main deployment. Until then, the owner-admin page is not part of the live Pages site. No deployment has been triggered by this setup work. The live site remains the public demonstration storefront; no owner-admin page is published yet.
 
 ### Supabase URL settings to configure after deployment is confirmed
 
