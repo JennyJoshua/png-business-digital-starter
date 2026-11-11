@@ -1,6 +1,6 @@
 -- Owners may prepare draft businesses/listings, but only platform administrators
--- may change publication_status to published. Owners retain a narrowly-scoped
--- archive action through SECURITY DEFINER RPCs with explicit membership checks.
+-- may change publication_status to published. Owner archive operations are kept
+-- in app_private (not Data API exposed) and exposed through SECURITY INVOKER RPCs.
 
 -- Business publication is platform-controlled.
 revoke update (publication_status) on app_private.businesses from authenticated;
@@ -29,8 +29,8 @@ grant update (category_id,kind,name,slug,description,price,currency,price_unit,
   availability_status,image_path,sort_order)
 on admin_api.listings to authenticated;
 
--- Owners may archive their own records, but cannot publish or unarchive them.
-create or replace function admin_api.archive_category(p_category_id uuid)
+-- Privileged implementation lives in the unexposed app_private schema.
+create or replace function app_private.archive_category(p_category_id uuid)
 returns void
 language plpgsql
 security definer
@@ -38,6 +38,9 @@ set search_path = ''
 as $$
 declare affected integer;
 begin
+  if auth.uid() is null then
+    raise exception 'Authentication required' using errcode = '42501';
+  end if;
   update app_private.categories c
   set publication_status = 'archived'
   where c.id = p_category_id
@@ -57,7 +60,7 @@ begin
 end;
 $$;
 
-create or replace function admin_api.archive_listing(p_listing_id uuid)
+create or replace function app_private.archive_listing(p_listing_id uuid)
 returns void
 language plpgsql
 security definer
@@ -65,6 +68,9 @@ set search_path = ''
 as $$
 declare affected integer;
 begin
+  if auth.uid() is null then
+    raise exception 'Authentication required' using errcode = '42501';
+  end if;
   update app_private.listings l
   set publication_status = 'archived'
   where l.id = p_listing_id
@@ -82,6 +88,31 @@ begin
       using errcode = '42501';
   end if;
 end;
+$$;
+
+revoke all on function app_private.archive_category(uuid) from public, anon, authenticated;
+revoke all on function app_private.archive_listing(uuid) from public, anon, authenticated;
+grant execute on function app_private.archive_category(uuid) to authenticated;
+grant execute on function app_private.archive_listing(uuid) to authenticated;
+
+-- Exposed RPCs are invoker-rights wrappers only; the privileged implementation
+-- remains in the unexposed schema and independently validates auth.uid().
+create or replace function admin_api.archive_category(p_category_id uuid)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  select app_private.archive_category(p_category_id);
+$$;
+
+create or replace function admin_api.archive_listing(p_listing_id uuid)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  select app_private.archive_listing(p_listing_id);
 $$;
 
 revoke all on function admin_api.archive_category(uuid) from public, anon, authenticated;
