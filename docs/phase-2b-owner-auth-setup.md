@@ -3,7 +3,7 @@
 **Project:** PNG Business Digital Starter Dev  
 **Project ref:** `rwcwvqlgyckfdrglsbfg`  
 **Dashboard:** https://supabase.com/dashboard/project/rwcwvqlgyckfdrglsbfg  
-**Status:** Application code is prepared. User confirmed the Data API schema list was saved; Auth configuration, URL configuration, invitation delivery and first real owner provisioning remain outstanding.
+**Status:** Public signup is disabled and verified. GitHub Pages is the selected host. The Pages deployment currently serves the public demo storefront; the Phase 2B admin app is on an unmerged branch and is not yet deployed. Site URL/redirect allow-list and invitation delivery remain outstanding.
 
 ## 1. Data API schema exposure
 
@@ -15,13 +15,13 @@ The browser admin calls the schema explicitly with `supabase.schema('admin_api')
 
 **Do not expose `app_private`.** It contains the underlying application tables. The owner API views in `admin_api` use `security_invoker = true`; their underlying table privileges and RLS remain in force.
 
-The user has confirmed saving this configuration. Before connecting the browser app, verify the exposed-schema list and test actual REST requests. Do not expose other schemas merely to make an API error disappear.
+The saved schema list was confirmed through live REST probes: `public`, `graphql_public`, and `admin_api` are exposed; `app_private` is not. Anonymous access to `admin_api` was denied as expected.
 
 ## 2. Auth general settings
 
-In the Supabase dashboard, open Authentication → Settings / General configuration and verify:
+The user turned off **Allow new user signups** in the Supabase dashboard. A fresh public Auth settings request verified `disable_signup=true`.
 
-| Setting | Required value | Reason |
+| Setting | Verified value | Reason |
 |---|---|---|
 | Allow new user signups | **Off** | No public self-registration for business owners |
 | Allow anonymous sign-ins | **Off** | No anonymous Auth sessions |
@@ -32,15 +32,36 @@ The admin app intentionally has no registration form or `signUp()` call. An owne
 
 Supabase reference: [General Auth configuration](https://supabase.com/docs/guides/auth/general-configuration).
 
-## 3. URL configuration
+## 3. GitHub Pages hosting and Supabase callback URLs
 
-The owner app is served from the `/admin/` path of the selected storefront host. Before using email invitation or password recovery links:
-- Set the Supabase Site URL to the intended admin host.
-- Add the exact admin URL and local development URL to the allowed redirect URL list.
-- Do not add broad wildcard domains unless there is a documented need.
-- Test the redirect on the real target host before inviting a business owner.
+GitHub Pages is the selected host for the owner-admin interface.
 
-No branch preview or production admin URL is assumed by this document. The current branch is not automatically deployed by the existing GitHub Pages workflow.
+**Expected repository project-site URL:**
+`https://jennyjoshua.github.io/png-business-digital-starter/`
+
+**Expected owner-admin URL:**
+`https://jennyjoshua.github.io/png-business-digital-starter/admin/`
+
+These are the expected addresses based on the public repository name and GitHub Pages project-site convention. The Pages URL must be confirmed in the repository's Pages settings or from a successful deployment before it is treated as live.
+
+### Existing deployment workflow
+
+The repository already has `.github/workflows/deploy-pages.yml` on `main`. It deploys the generated `dist/` directory to GitHub Pages on pushes to `main` and manual workflow dispatch. On current `main`, the build publishes the public demonstration storefront.
+
+The Phase 2B owner-admin foundation branch changes the build script to copy the private admin app into `dist/admin/`. Once that branch is reviewed and merged, the existing Pages workflow will include `/admin/` in the Pages artifact and publish it on the next successful main deployment. Until then, the owner-admin page is not part of the live Pages site. No deployment has been triggered by this setup work.
+
+### Supabase URL settings to configure after deployment is confirmed
+
+Set the Supabase Authentication URL configuration as follows:
+
+- **Site URL:** `https://jennyjoshua.github.io/png-business-digital-starter/`
+- **Allowed redirect URL:** `https://jennyjoshua.github.io/png-business-digital-starter/admin/`
+- Add a local development callback only if it is actually needed for a controlled test.
+- Do not add broad wildcards or unrelated preview URLs.
+
+The application calls `resetPasswordForEmail(..., { redirectTo: window.location.href })`; invitation/recovery links must therefore be allowed to return to the exact `/admin/` page. The Supabase public settings endpoint currently returned `null` for `site_url` and `uri_allow_list`, so these dashboard settings still need to be configured and verified.
+
+Do not set these URLs based only on an assumed hostname if the repository's Pages settings show a custom domain or a different published URL.
 
 ## 4. Invitation email delivery
 
@@ -54,13 +75,15 @@ Reference: [Supabase Auth users and invitations](https://supabase.com/docs/guide
 
 No real owner account or business record has been created yet. When the user approves the actual business details and owner email, use this controlled sequence:
 
-1. Verify the saved Data API exposure through actual REST requests and verify Auth settings above.
-2. Verify invitation email delivery to the intended recipient.
-3. Send the owner invitation from Authentication → Users.
-4. Retrieve the invited Auth user's UUID from the dashboard.
-5. Insert the business record and its active `owner` membership using a reviewed, one-time SQL statement in the Supabase SQL Editor. The membership is what grants business access; Auth account creation alone grants no business data access.
-6. Test sign-in, password setup, owner-only view access, cross-tenant denial and sign-out.
-7. Do not put a business's real customer data into the Free development project.
+1. Verify the saved Data API exposure and Auth settings above.
+2. Confirm the GitHub Pages deployment URL and configure/verify Supabase Site URL and redirect allow-list.
+3. Test invitation and password-recovery callbacks on the deployed `/admin/` page.
+4. Verify invitation email delivery to the intended recipient.
+5. Send the owner invitation from Authentication → Users.
+6. Retrieve the invited Auth user's UUID from the dashboard.
+7. Insert the business record and its active `owner` membership using a reviewed, one-time SQL statement in the Supabase SQL Editor. The membership is what grants business access; Auth account creation alone grants no business data access.
+8. Test sign-in, password setup, owner-only view access, cross-tenant denial and sign-out.
+9. Do not put a business's real customer data into the Free development project.
 
 The SQL statement must be prepared only after the business name, permanent business ID, slug, type and owner account UUID are known and confirmed. Do not create placeholder or dummy owner accounts.
 
@@ -83,6 +106,7 @@ The SQL statement must be prepared only after the business name, permanent busin
 Do not use the owner admin for real customer operations until all of the following are complete:
 - Data API schema list is verified.
 - Auth signup and anonymous settings are verified.
+- GitHub Pages admin deployment and Supabase callback URLs are verified.
 - Email invitations and recovery links are tested.
 - An actual owner account is provisioned with a confirmed business membership.
 - Browser-based RLS tests pass through the real Data API.
