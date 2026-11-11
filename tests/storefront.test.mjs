@@ -225,7 +225,7 @@ test('owner admin: private app is built, restores sessions, supports business sw
     assert.ok(page.includes('noindex,nofollow'));
     assert.ok(page.includes('Owner sign in'));
     assert.ok(page.includes('business-switch'));
-    assert.ok(!/signUp\\s*\\(/i.test(app), 'owner app must not expose public registration');
+    assert.ok(!/signUp\s*\(/i.test(app), 'owner app must not expose public registration');
     assert.ok(app.includes('sb_publishable_'));
     assert.ok(!/service_role|sb_secret_|SUPABASE_SERVICE_ROLE/i.test(app), 'privileged Supabase credentials must never be shipped to browsers');
     assert.ok(app.includes('business_memberships') && app.includes("schema('admin_api')"));
