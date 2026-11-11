@@ -234,3 +234,19 @@ test('owner admin: private app is built, restores sessions, supports business sw
     assert.ok(app.includes('l.currency'), 'listing display must use the stored currency');
   }
 });
+
+
+test('Phase 2B publication authority: owners cannot publish businesses, categories, or listings', () => {
+  const migration = rd('.', 'supabase/migrations/20261111120000_phase_2b_platform_publication_controls.sql');
+  const admin = rd('.', 'admin/admin.js');
+  assert.match(migration, /revoke update \(publication_status\) on app_private\.businesses from authenticated/i);
+  assert.match(migration, /revoke insert \(publication_status\), update \(publication_status\)[\s\S]*?on app_private\.categories from authenticated/i);
+  assert.match(migration, /revoke insert \(publication_status\), update \(publication_status\)[\s\S]*?on app_private\.listings from authenticated/i);
+  assert.match(migration, /create or replace function admin_api\.archive_category/i);
+  assert.match(migration, /create or replace function admin_api\.archive_listing/i);
+  assert.match(migration, /grant execute on function admin_api\.archive_category\(uuid\) to authenticated/i);
+  assert.match(migration, /grant execute on function admin_api\.archive_listing\(uuid\) to authenticated/i);
+  assert.match(admin, /rpc\("archive_category"/);
+  assert.match(admin, /rpc\("archive_listing"/);
+  assert.doesNotMatch(admin, /publication_status:"draft"/);
+});
