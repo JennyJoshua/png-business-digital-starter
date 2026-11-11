@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - "phase-2b/**"
   push:
     branches:
       - main
@@ -22,6 +23,9 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 20
+
+      - name: Check owner admin JavaScript syntax
+        run: node --check admin/admin.js
 
       - name: Run automated tests
         run: npm test
