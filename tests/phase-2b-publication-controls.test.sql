@@ -188,11 +188,11 @@ reset role;
 -- Confirm cross-tenant records were not modified and all denied actions left no published data.
 do $$
 begin
-  if (select publication_status from app_private.categories c join app_private.businesses b on b.id=c.business_id
+  if (select c.publication_status from app_private.categories c join app_private.businesses b on b.id=c.business_id
       where b.business_id='test-business-b' and c.category_id='seed-category') <> 'draft' then
     raise exception 'cross-tenant category was changed';
   end if;
-  if (select publication_status from app_private.listings l join app_private.businesses b on b.id=l.business_id
+  if (select l.publication_status from app_private.listings l join app_private.businesses b on b.id=l.business_id
       where b.business_id='test-business-b' and l.listing_id='seed-listing') <> 'draft' then
     raise exception 'cross-tenant listing was changed';
   end if;
