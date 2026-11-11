@@ -50,9 +50,9 @@ The repository already has `.github/workflows/deploy-pages.yml` on `main`. It de
 
 The Phase 2B owner-admin foundation branch changes the build script to copy the private admin app into `dist/admin/`. Once that branch is reviewed and merged, the existing Pages workflow will include `/admin/` in the Pages artifact and publish it on the next successful main deployment. Until then, the owner-admin page is not part of the live Pages site. No deployment has been triggered by this setup work. The live site remains the public demonstration storefront; no owner-admin page is published yet.
 
-### Supabase URL settings to configure after deployment is confirmed
+### Supabase URL settings — user-confirmed
 
-Set the Supabase Authentication URL configuration as follows:
+The user has already saved and confirmed these values in Supabase Authentication → URL Configuration. Re-check them only if the published hostname or admin path changes:
 
 - **Site URL:** `https://jennyjoshua.github.io/png-business-digital-starter/`
 - **Allowed redirect URL:** `https://jennyjoshua.github.io/png-business-digital-starter/admin/`
@@ -76,7 +76,7 @@ Reference: [Supabase Auth users and invitations](https://supabase.com/docs/guide
 No real owner account or business record has been created yet. When the user approves the actual business details and owner email, use this controlled sequence:
 
 1. Verify the saved Data API exposure and Auth settings above.
-2. Confirm the GitHub Pages deployment URL and configure/verify Supabase Site URL and redirect allow-list.
+2. After the admin page is deployed, confirm its live URL matches the user-confirmed Site URL and redirect allow-list; update those settings only if the published hostname or path differs.
 3. Test invitation and password-recovery callbacks on the deployed `/admin/` page.
 4. Verify invitation email delivery to the intended recipient.
 5. Send the owner invitation from Authentication → Users.
