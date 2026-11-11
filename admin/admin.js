@@ -44,6 +44,17 @@ function friendlyError(error) {
   if (/Email not confirmed/i.test(text)) return "Please confirm your email using the invitation email before signing in.";
   return text;
 }
+
+window.addEventListener("unhandledrejection", event => {
+  event.preventDefault();
+  const target = appPanel.hidden ? authMessage : appMessage;
+  const detail = event.reason?.message || String(event.reason || "");
+  if (/failed to fetch|network|load failed|timeout|connection/i.test(detail)) {
+    message(target, "A connection problem interrupted that action. Check your internet connection and try again.");
+  } else {
+    message(target, friendlyError(event.reason));
+  }
+});
 async function loadBusiness() {
   message(appMessage, "Checking your business access…");
   const m = await adminDb.from("business_memberships")
