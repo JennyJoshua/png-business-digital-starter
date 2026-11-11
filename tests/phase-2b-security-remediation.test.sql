@@ -5,10 +5,17 @@
 
 -- Simulate broad per-schema defaults so the migration must actively revoke them.
 alter default privileges for role postgres in schema public
-  grant all privileges on tables to anon, authenticated;
+  grant all privileges on tables to public, anon, authenticated;
 alter default privileges for role supabase_admin in schema public
   grant all privileges on tables to anon, authenticated;
 grant create on schema public to supabase_admin;
+
+-- Simulate an inherited PUBLIC DML grant on the three public views.
+grant all privileges on table
+  public.storefront_businesses,
+  public.storefront_categories,
+  public.storefront_listings
+to public;
 
 \ir ../supabase/migrations/20261111065208_phase_2b_owner_and_public_view_privilege_hardening.sql
 
