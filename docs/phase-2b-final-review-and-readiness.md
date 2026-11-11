@@ -18,10 +18,10 @@ This is not a go-live approval. Real browser authentication, invitation delivery
 
 | PR | Scope | State | CI |
 |---|---|---|---|
-| [#8 — Private owner-admin foundation](https://github.com/JennyJoshua/png-business-digital-starter/pull/8) | Admin app, platform-only publication controls, public RLS support fix, tests and docs | Draft; open; unmerged | Run #144 — **success** |
-| [#9 — Phase 2B security remediation](https://github.com/JennyJoshua/png-business-digital-starter/pull/9) | One-active-owner index, read-only public views, default-privilege hardening, audit docs and SQL tests | Draft; open; unmerged; stacked on PR #8 | Run #154 — **success** |
+| [#8 — Private owner-admin foundation](https://github.com/JennyJoshua/png-business-digital-starter/pull/8) | Admin app, platform-only publication controls, public RLS support fix, tests and docs | Draft; open; unmerged | Run #157 — **success** |
+| [#9 — Phase 2B security remediation](https://github.com/JennyJoshua/png-business-digital-starter/pull/9) | One-active-owner index, read-only public views, default-privilege hardening, audit docs and SQL tests | Draft; open; unmerged; stacked on PR #8 | Run #158 — **success** |
 
-PR #9 is reconciled onto the current PR #8 branch. GitHub compare reports it as ahead with zero commits behind, and the PR is mergeable. Its diff contains only the security-remediation workflow/doc/migration/test files.
+PR #9 is reconciled onto the current PR #8 branch. GitHub compare reports it as ahead by 20 commits with zero commits behind, and the PR is mergeable. Its diff contains only the security-remediation workflow/doc/migration/test files.
 
 ## Verified implementation and test results
 
