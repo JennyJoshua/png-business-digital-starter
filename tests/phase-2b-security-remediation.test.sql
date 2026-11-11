@@ -1,44 +1,14 @@
--- Disposable PostgreSQL 17 integration test for Phase 2B security remediation.
--- Run with psql against an empty database as a superuser.
+-- Continues tests/phase-2b-publication-controls.test.sql in the same disposable
+-- PostgreSQL database. Roles, auth fixtures, schema and two tenant fixtures exist.
 
 \set ON_ERROR_STOP on
 
-create role anon nologin;
-create role authenticated nologin;
-create role supabase_admin nologin;
-
-create schema auth;
-create table auth.users (id uuid primary key);
-create or replace function auth.uid()
-returns uuid
-language sql stable
-as $$
-  select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
-$$;
-grant usage on schema auth to anon, authenticated;
-grant execute on function auth.uid() to anon, authenticated;
-
--- Simulate the broad default privileges this migration is designed to remove.
+-- Simulate broad per-schema defaults so the migration must actively revoke them.
 alter default privileges for role postgres in schema public
   grant all privileges on tables to anon, authenticated;
 alter default privileges for role supabase_admin in schema public
   grant all privileges on tables to anon, authenticated;
 grant create on schema public to supabase_admin;
-
-\ir ../supabase/migrations/20261109000651_phase_2b_owner_admin_core.sql
-\ir ../supabase/migrations/20261109001259_phase_2b_admin_api_views.sql
-
-insert into auth.users(id) values
- ('00000000-0000-4000-8000-000000000001'),
- ('00000000-0000-4000-8000-000000000002');
-insert into app_private.businesses(business_id,slug,name)
-values ('test-business-a','test-business-a','Test Business A');
-insert into app_private.business_memberships(business_id,user_id,role,status)
-select b.id,u.id,'owner','active'
-from app_private.businesses b
-cross join auth.users u
-where b.business_id='test-business-a'
-  and u.id='00000000-0000-4000-8000-000000000001';
 
 \ir ../supabase/migrations/20261111065208_phase_2b_owner_and_public_view_privilege_hardening.sql
 
