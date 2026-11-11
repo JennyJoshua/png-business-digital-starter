@@ -46,7 +46,14 @@
     <section id="app-panel" hidden>
       <header class="topbar">
         <a class="brand" href="./" aria-label="Business Digital Starter admin home"><span class="brand-mark small-mark">B</span><span><strong>Business Admin</strong><small>Digital Starter</small></span></a>
-        <div class="top-actions"><span id="signed-in-email" class="muted small"></span><button id="signout" class="outline" type="button">Sign out</button></div>
+        <div class="top-actions">
+          <div id="business-switch-wrap" class="business-switch-wrap" hidden>
+            <label for="business-switch">Business</label>
+            <select id="business-switch" aria-label="Switch business"></select>
+          </div>
+          <span id="signed-in-email" class="muted small"></span>
+          <button id="signout" class="outline" type="button">Sign out</button>
+        </div>
       </header>
       <div class="layout">
         <aside class="sidebar" aria-label="Admin navigation">
