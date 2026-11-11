@@ -31,7 +31,7 @@ REVOKE ALL PRIVILEGES ON TABLE
   public.storefront_businesses,
   public.storefront_categories,
   public.storefront_listings
-FROM anon, authenticated;
+FROM PUBLIC, anon, authenticated;
 
 GRANT SELECT ON TABLE
   public.storefront_businesses,
@@ -43,7 +43,7 @@ TO anon, authenticated;
 -- public by either migration owner. Future API exposure must use explicit,
 -- least-privilege grants. This does not alter existing objects.
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-  REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated;
+  REVOKE ALL PRIVILEGES ON TABLES FROM PUBLIC, anon, authenticated;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public
   REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated;
