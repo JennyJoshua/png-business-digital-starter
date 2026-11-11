@@ -46,7 +46,7 @@ The Starter Dev project reports these applied migrations:
 | `20261109001259` | `phase_2b_admin_api_views` |
 | `20261109002919` | `phase_2b_public_storefront_read_grants` |
 
-The GitHub `main` tree currently has no `supabase/` directory and no checked-in SQL migration files. This means the repository cannot currently reproduce or independently review the applied database history from its own contents. Treat the remote schema as existing state, not as a disposable environment.
+The GitHub `main` tree currently has no `supabase/` directory. However, all four matching SQL migration files are present on the existing unmerged branch `phase-2b/owner-admin-interface-foundation`, together with the owner-admin implementation and verification documents. The migration source is therefore recoverable and version-controlled on that branch, but is not yet part of `main`. Treat the remote schema as existing state, not as a disposable environment. Review the branch and reconcile its exact migration history before any new migration is authored or applied.
 
 ## 4. Existing schema
 
@@ -79,6 +79,10 @@ The listing currency defaults to `PGK`, and the business country code defaults t
 
 This does not meet the newly approved initial rule of exactly one owner per business. Add an appropriate database-level uniqueness rule only after checking for existing duplicate rows and preparing a reviewed migration. No rows were changed during this audit.
 
+### Listing category cardinality
+
+The existing v1 schema supports one category per listing through `listings.category_id` and a composite foreign key that ensures the category belongs to the same business. Keep this single-category model for the current implementation; do not add a join table unless multi-category listings become an explicitly approved product requirement.
+
 ## 5. RLS and policy inventory
 
 RLS is enabled on all seven `app_private` application tables. The tables are not marked FORCE ROW LEVEL SECURITY.
@@ -103,31 +107,43 @@ Two API-oriented schemas exist:
 
 The public views use explicit public field selections and filter for published businesses/listings. This is aligned with the approved public data boundary.
 
-### Finding A — admin view writes lack matching base-table privileges
+### Finding A — admin view/base-table grants are aligned at column level
 
-The `admin_api` views grant authenticated users INSERT/UPDATE/DELETE for selected admin resources. But the underlying `app_private` table grants observed for `authenticated` are largely SELECT-only:
-- businesses: SELECT only;
-- categories: SELECT only;
-- listings: SELECT only;
-- business private settings: SELECT only;
-- promotions: SELECT and DELETE only;
-- asset metadata: SELECT and DELETE only.
+The first table-level privilege query did not show the column-level grants. A follow-up inspection of `information_schema.column_privileges` confirmed that the intended authenticated INSERT/UPDATE columns are granted on the underlying `app_private` tables, and the `admin_api` views use `security_invoker=true`.
 
-Because the admin views use `security_invoker=true`, the caller's underlying table privileges and RLS policies still apply. The view grants alone do not provide the missing base-table privileges. Consequently, the intended owner-admin write operations are not yet demonstrated and are expected to fail where the underlying table privilege is missing.
+**Correction:** no admin view/base-table grant mismatch is established by this audit. The remaining limitation is that browser CRUD through the actual Data API has not been independently verified in this audit. The earlier branch security-verification document reports SQL role-simulation tests passed; actual browser REST requests remain an outstanding gate.
 
-**Remediation direction:** align view and base-table grants with the exact RLS-protected owner operations. Do not solve this by switching views to security-definer or by exposing a service-role key to the browser.
+Do not switch views to security-definer or expose a service-role key to the browser.
 
-### Finding B — public storefront views have excessive DML grants
+### Finding B — public storefront views inherit excessive DML grants
 
-The `public.storefront_businesses`, `public.storefront_categories` and `public.storefront_listings` views have broad privileges, including INSERT, UPDATE, DELETE, TRIGGER and TRUNCATE, granted to `anon` and `authenticated`.
+The `public.storefront_businesses`, `public.storefront_categories` and `public.storefront_listings` views currently have broad ACLs, including INSERT, UPDATE, DELETE, TRIGGER and TRUNCATE, for `anon` and `authenticated`.
 
-The underlying `app_private` base tables appear to grant those roles SELECT only for the relevant public-read tables, and the views use `security_invoker=true`; therefore the observed view grants alone do not establish that an anonymous write can succeed. Nevertheless, public storefront views should be explicitly read-only. Revoke unnecessary DML privileges and retain only SELECT for the intended public roles.
+The migration source explicitly grants SELECT, but the live database's `pg_default_acl` for the `public` schema grants broad relation privileges to `anon` and `authenticated` by default. The views use `security_invoker=true`, and the relevant base tables grant only SELECT to anonymous users, so the view ACLs alone do not establish that an anonymous write can succeed. Nevertheless, public storefront views must be read-only.
+
+**Remediation direction:** revoke all existing DML privileges from the three public storefront views, then grant only SELECT to the intended public roles. Review and tighten the default privileges for future public-schema relations so new views/tables do not silently inherit broad client DML.
 
 ### Finding C — API schema exposure needs dashboard verification
 
 The database contains `app_private`, `admin_api` and `public` schemas. SQL metadata confirms schema usage privileges, but the effective PostgREST exposed-schema configuration was not available from the inspected SQL setting. Verify the Data API exposed-schema configuration in the Supabase dashboard before relying on either custom API schema. Do not expose `app_private` merely to make the admin views work.
 
-## 7. Missing capabilities
+## 7. Owner-admin application branch review
+
+The existing branch `phase-2b/owner-admin-interface-foundation` contains a mobile-first `admin/` interface, four SQL migration files, implementation notes, owner-auth setup guidance, security verification notes and expanded tests. This is substantial existing work and should be reviewed and continued rather than recreated.
+
+Static code review found these remaining issues or unverified behaviours:
+
+1. **Session restoration:** the client persists Supabase sessions but does not handle the `INITIAL_SESSION` event or load an existing session on page refresh. A previously signed-in owner may be shown the sign-in screen after reopening the admin.
+2. **Multiple business memberships:** the database and implementation notes allow a user to own more than one business, but `loadBusiness()` selects `b.data[0]` without a business switcher. Add a selector or explicitly constrain the product decision; do not silently select the first business.
+3. **Invitation/recovery flow:** the code handles `PASSWORD_RECOVERY` and checks invitation URL markers, but the full invite callback/session path has not been verified through real Auth email links. Test both invite setup and password recovery on the actual admin URL.
+4. **Currency display/input:** listing display and creation hardcode `PGK` even though the database stores a currency code per listing. Use the stored currency for display and make the business currency rule explicit before supporting non-PGK businesses.
+5. **Error and loading states:** network exceptions and some async event-handler failures are not consistently caught and surfaced as safe user messages.
+6. **Incomplete features:** logo/image upload, contact/social editing refinements and data export are not implemented; Storage is not configured.
+7. **Public data sync:** owner changes do not yet update the public static storefront. Keep the current static fallback until a controlled, tested published-data adapter is ready.
+
+The UI uses a Supabase publishable key in browser code, not a service-role key. That key is intended for public client use; authorization still depends on RLS and grants. The UI escapes dynamic text inserted into HTML templates and marks the admin page noindex, but these observations do not replace runtime testing.
+
+## 8. Missing capabilities
 
 | Capability | Observed state | Consequence |
 |---|---|---|
@@ -151,16 +167,16 @@ The database contains `app_private`, `admin_api` and `public` schemas. SQL metad
 - Security advisor returned no lints.
 
 **Outstanding before owner-admin pilot**
-1. Reconcile all four remote migrations into reviewed, versioned repository files. Do not blindly generate/apply duplicate migrations.
+1. Review and reconcile the four existing migration files on `phase-2b/owner-admin-interface-foundation` against the four applied remote migration records. Do not recreate or blindly reapply them.
 2. Enforce the one-owner-per-business invariant after checking existing rows.
-3. Correct the admin view/base-table privilege mismatch using narrowly scoped grants plus RLS.
-4. Revoke DML from public storefront views; keep only SELECT.
-5. Verify API exposed schemas and ensure `app_private` is not exposed.
-6. Implement a trusted operator invitation/provisioning flow without browser secrets.
-7. Add Storage buckets and tenant-specific Storage policies only after upload requirements are finalized.
-8. Add an append-only audit trail for sensitive events.
-9. Run real JWT-based RLS tests for at least two tenants and anonymous access.
-10. Re-run Supabase security advisors and inspect all results after remediation.
+3. Revoke DML from the three public storefront views and retain SELECT only; tighten default privileges for future public-schema objects.
+4. Verify API exposed schemas and ensure `app_private` is not exposed.
+5. Complete and test the invitation/session lifecycle without browser secrets.
+6. Add Storage buckets and tenant-specific Storage policies only after upload requirements are finalized.
+7. Add an append-only audit trail for sensitive events.
+8. Fix session restoration and add a business selector for multiple memberships.
+9. Use each listing's stored currency and implement safe error/loading handling.
+10. Run real browser JWT tests for at least two tenants and anonymous access; re-run Supabase security advisors after remediation.
 
 ## 9. Recommended next work order
 
