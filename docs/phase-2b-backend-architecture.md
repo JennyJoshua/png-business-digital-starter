@@ -146,3 +146,20 @@ The following are the minimum architecture decisions. The recommendation is show
 5. **Existing project:** reuse an existing Supabase project only after confirming it is suitable and isolated from the PNG Materials Marketplace; otherwise create a separate Digital Starter project only with explicit approval.
 
 No database or cloud changes are authorized by this architecture proposal. Once these decisions are approved, implementation can begin with reviewed migrations and RLS tests on this branch.
+
+
+---
+
+## 9. Owner decision record — 11 November 2026
+
+The owner has approved the following architecture baseline. This decision record supersedes the open recommendations and alternatives in section 8 above:
+
+1. Supabase is the backend provider.
+2. Use one shared multi-tenant backend for Starter businesses.
+3. Owner onboarding is invitation-only during the initial pilot.
+4. Provision one owner account per business initially; staff roles are deferred.
+5. Keep the Starter backend/database separate from PNG Materials Marketplace.
+
+The detailed approved schema, tenant constraints, RLS requirements, invitation lifecycle, acceptance tests and delivery gates are recorded in [Phase 2B — Approved Owner-Admin Architecture](phase-2b-approved-architecture.md).
+
+**Provisioning remains a separate gate:** this approval does not create or select a Supabase project, change an existing organization, create credentials, apply migrations or authorize deployment. Confirm the intended Supabase organization and explicitly approve project creation before provisioning. The Materials Marketplace project must not be reused.
