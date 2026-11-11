@@ -213,3 +213,24 @@ test('public storefront: no Promotions page; search suggestions and full results
     assert.ok(results.includes(cfg(e).name.replace(/&/g, '&amp;')));
   }
 });
+
+
+test('owner admin: private app is built, restores sessions, supports business switching and never ships privileged credentials', () => {
+  for (const e of EX) {
+    const adminDir = path.join(out[e], 'admin');
+    assert.ok(fs.existsSync(path.join(adminDir, 'index.html')));
+    assert.ok(fs.existsSync(path.join(adminDir, 'admin.js')));
+    assert.ok(fs.existsSync(path.join(adminDir, 'admin.css')));
+    const page = rd(adminDir, 'index.html'), app = rd(adminDir, 'admin.js');
+    assert.ok(page.includes('noindex,nofollow'));
+    assert.ok(page.includes('Owner sign in'));
+    assert.ok(page.includes('business-switch'));
+    assert.ok(!/signUp\\s*\\(/i.test(app), 'owner app must not expose public registration');
+    assert.ok(app.includes('sb_publishable_'));
+    assert.ok(!/service_role|sb_secret_|SUPABASE_SERVICE_ROLE/i.test(app), 'privileged Supabase credentials must never be shipped to browsers');
+    assert.ok(app.includes('business_memberships') && app.includes("schema('admin_api')"));
+    assert.ok(app.includes('getSession()'), 'stored sessions must be restored after page reload');
+    assert.ok(app.includes('loadCurrentBusiness'), 'owners must be able to switch between their authorized businesses');
+    assert.ok(app.includes('l.currency'), 'listing display must use the stored currency');
+  }
+});
