@@ -1,0 +1,240 @@
+# Phase 2B — Approved Owner-Admin Architecture
+
+**Status:** Owner-approved architecture baseline; implementation design only  
+**Approval recorded:** 11 November 2026  
+**Branch:** `phase-2b/approved-architecture`  
+**Scope:** PNG Business Digital Starter only
+
+## 1. Approved decisions
+
+The product owner approved these decisions:
+
+1. **Backend:** Supabase (Postgres, Auth and Storage).
+2. **Tenant topology:** one shared multi-tenant backend for all participating Starter businesses.
+3. **Owner onboarding:** invitation-only during the initial pilot.
+4. **Initial membership:** one owner account per business. Staff/member roles are deferred.
+5. **Database boundary:** the Starter backend is separate from the PNG Materials Marketplace backend. No shared database, shared credentials or direct cross-project table access.
+
+These decisions supersede the corresponding open choices in the earlier Phase 2B proposal.
+
+## 2. Provisioning boundary — not yet authorized
+
+This approval establishes the architecture, not permission to create or modify cloud resources.
+
+- No Supabase project has been created or selected for this product by this change.
+- Before project creation, confirm the intended Supabase organization and available project quota.
+- Do not reuse the Materials Marketplace project.
+- A dedicated Starter Supabase project is the target.
+- A Free Plan project may be used for development and testing only. Production use requires a separate review of hosting, backups, availability, limits and cost.
+- No schema has been applied, no Auth settings have been changed, no Storage bucket has been created and no secrets have been generated.
+
+## 3. Product boundary
+
+The product has two distinct interfaces backed by the same canonical Starter data:
+
+### Public storefront
+- No customer account required.
+- Reads only published, explicitly public business and catalogue fields.
+- Includes public business profile, branding, categories, product/service listings and contact links.
+- Does not include Promotions pages, sections, banners, navigation or public promotional placement.
+- Does not expose admin routes as public functionality or include private owner data in generated output.
+
+### Private owner admin
+- Requires an authenticated invited owner.
+- Manages the owner's own business profile, branding, logo, categories, listings, private Promotions and exports.
+- Is a separate management surface from the public storefront.
+- Shares the same canonical business and catalogue records.
+- Hiding a link or route is never treated as authorization.
+
+The current static generator remains operational during the backend build. Migration to backend-backed published data must be staged and tested; no abrupt change to the existing public build is allowed.
+
+## 4. Tenant and ownership model
+
+- Each business is a tenant with an internal UUID primary key and a stable external business identifier.
+- Every tenant-owned record includes a non-null `business_id` foreign key.
+- An owner is linked through a protected database membership record tied to the Supabase Auth user UUID.
+- Initial policy is exactly one active owner membership per business.
+- A user may own more than one business, subject to operator-issued invitations.
+- Owners cannot self-register, claim an existing business, add themselves to another tenant, transfer ownership, or elevate their role.
+- Initial business creation and owner invitation are performed through a trusted operator-only process.
+- Staff roles, delegated managers and self-service business claims are out of scope for v1.
+
+The database must enforce the one-owner-per-business constraint; it must not rely on frontend logic.
+
+## 5. Proposed logical schema
+
+This is a reviewed design proposal, not executable migration SQL. Exact column types, indexes, constraints and policies will be finalized in the migration review.
+
+| Table | Key fields and constraints | Purpose |
+|---|---|---|
+| `businesses` | `id` UUID PK; `business_code` unique stable external ID; `slug` unique; `status`; public profile fields; timestamps | Canonical tenant and public business profile |
+| `business_memberships` | `id`; `business_id` FK UNIQUE; `user_id` FK to Auth; `role` constrained to `owner`; `status`; timestamps | One authorized owner per business |
+| `business_private_settings` | `business_id` PK/FK; private settings and operational metadata | Owner-only configuration |
+| `categories` | `id`; `business_id` FK; stable `category_code`; name; active flag; unique (`business_id`, `category_code`) | Tenant-scoped product/service taxonomy |
+| `listings` | `id`; `business_id` FK; stable `listing_code`; `listing_type` product/service; title; description; price; ISO currency code; unit; publication status; timestamps; unique (`business_id`, `listing_code`) | Canonical catalogue |
+| `listing_categories` | `listing_id` FK; `category_id` FK; composite unique key | Listing/category relationships with tenant-consistency enforcement |
+| `promotions` | `id`; `business_id` FK; title/content; status; start/end metadata | Private owner-managed promotions; no public read policy in v1 |
+| `asset_metadata` | `id`; `business_id` FK; storage path; asset type; visibility; timestamps | Tracks business logos and listing media |
+| `audit_events` | event ID; business ID; actor user ID; action; target type/ID; timestamp; safe metadata | Records sensitive owner/admin changes; append-only to normal owners |
+
+### Data invariants
+
+- UUIDs are internal database identifiers; stable `business_code` and `listing_code` values remain portable external identifiers.
+- A listing code is unique within a business and is never silently recycled after archival.
+- Every listing has an explicit `listing_type` of product or service.
+- Monetary values are numeric and always paired with a validated ISO 4217 currency code. Do not infer currency from the business's country or format a string as the canonical price.
+- Listing unit/price-note semantics must be normalized and validated; free-form notes are not silently mapped into a unit.
+- Publication status is explicit (at minimum draft, published, archived). Only an authorized owner can request publication of their own record.
+- A public listing is readable only if both the listing and its parent business are published.
+- Promotions are private in v1. No public view, public export or anonymous policy may return their content.
+- Public response contracts use explicit field allowlists, not unrestricted row serialization.
+- Foreign keys and constraints must prevent a listing from being linked to another tenant's category.
+
+## 6. Authorization matrix
+
+| Capability | Anonymous visitor | Invited owner | Trusted operator |
+|---|---:|---:|---:|
+| Read published public business fields | Yes | Yes | Yes |
+| Read published public listings/categories | Yes | Yes | Yes |
+| Read drafts/unpublished listings | No | Own business only | As operationally required |
+| Read memberships/private settings | No | Own business only | As operationally required |
+| Create/update business profile | No | Own business only | Provisioning/support |
+| Create/update categories/listings | No | Own business only | Support only |
+| Manage private Promotions | No | Own business only | Support only |
+| Invite/replace owner | No | No | Yes, trusted workflow only |
+| Change own role or claim another tenant | No | No | Controlled operator process |
+| Read another business's private data | No | No | Only when specifically authorized for support |
+
+## 7. RLS and database security requirements
+
+RLS is the mandatory authorization boundary, not a convenience filter.
+
+1. Enable RLS on every tenant-owned table exposed through Supabase APIs.
+2. Use explicit policies for each operation: SELECT, INSERT, UPDATE and DELETE. Do not use one broad `FOR ALL` policy for convenience.
+3. Owner authorization must resolve through `business_memberships` using `auth.uid()` and an active membership. Do not trust editable `user_metadata`, client-supplied role values or a business ID supplied by the browser without a membership check.
+4. INSERT checks must require that the row's `business_id` belongs to the authenticated owner.
+5. UPDATE policies require both row visibility (`USING`) and post-update validity (`WITH CHECK`). Owners must not be able to move a row to another tenant by changing its `business_id`.
+6. DELETE policies must be explicitly limited to the owner's own tenant and the intended record types.
+7. Owners cannot insert, update or delete membership records, audit events or operator-managed invitation records.
+8. The one-owner-per-business constraint must be enforced by a unique database constraint, not a UI check.
+9. Add indexes for `business_id`, membership `user_id`, listing publication fields and columns used in RLS predicates.
+10. Avoid broad `SECURITY DEFINER` functions. Any required privileged function must have a narrow purpose, fixed safe search path, strict input validation and explicit authorization.
+11. Publish only intended image assets. Public Storage objects are public by design; upload/update/delete must be restricted to the owning tenant's path. Private assets must use a private bucket and signed access.
+12. Never put a Supabase service-role/secret key in browser code, static output, source maps, repository files, customer configuration or logs.
+13. Use a publishable/anon key in the browser only, with all user data operations performed under the signed-in user's JWT so RLS applies.
+14. Audit owner invitation, ownership changes, publication changes, export and other sensitive operations without logging passwords, tokens or secrets.
+
+### Public data access
+
+Anonymous access is read-only and limited to:
+- business records whose status is published, selecting only public profile fields;
+- listings whose own status is published and whose parent business is published, selecting only public catalogue fields;
+- categories that are used by eligible public listings.
+
+No anonymous access is granted to memberships, private settings, promotions, audit events, drafts, private assets or operator functions.
+
+## 8. Invitation and authentication lifecycle
+
+Initial owner onboarding:
+
+1. A trusted operator verifies that the business is authorized to join the Starter pilot.
+2. The operator creates the business tenant and stable business code through a trusted server-side process.
+3. The operator invites the designated owner through Supabase Auth using a server-side secret that never reaches the browser.
+4. The invited user completes the provider's supported account verification/password setup.
+5. A protected membership record links the Auth user UUID to the tenant with role `owner`.
+6. The owner signs in and can access only that business's admin data.
+7. A revoked or disabled membership immediately loses owner access through RLS, even if the user still has an Auth account.
+
+Additional requirements:
+- No public self-registration in the initial pilot.
+- No shared owner passwords.
+- Password reset and email verification use Supabase-supported flows.
+- Session expiry, logout and revoked membership must be handled in the admin interface.
+- Ownership replacement is an operator-controlled audited process; the current owner cannot transfer ownership by editing profile data.
+
+## 9. Storage and assets
+
+- Use a dedicated Starter Storage namespace, not the Marketplace project's buckets.
+- Public logo/listing images may be delivered publicly only after the owner publishes them.
+- Owner upload paths must include the tenant UUID and be validated against the caller's membership.
+- Private source files and future business documents must not be placed in a public bucket.
+- Validate MIME type, file size and allowed formats; generate safe filenames rather than trusting user-supplied paths.
+- Keep asset metadata in the database so exports can distinguish stable asset IDs from temporary storage URLs.
+- Define image resizing/compression limits before real business onboarding.
+
+## 10. Marketplace interoperability boundary
+
+- Starter remains the canonical system for its independent storefront business profile and catalogue until an owner explicitly approves export.
+- Marketplace remains authoritative for its provider account, approval/verification and Marketplace listing publication.
+- No shared database, shared Auth project, direct table writes or cross-project credentials.
+- Future integration uses a versioned authenticated server-side API or explicit export/import contract.
+- Preserve Starter business/listing external IDs through any mapping.
+- Imported Marketplace records remain pending/non-public until Marketplace's own approval process accepts them.
+- Currency, category IDs, service listings, image transfer, idempotency and consent revocation require an agreed contract before integration.
+- Real business data transfer requires that business owner's explicit consent.
+
+## 11. Acceptance and security test plan
+
+Before the first pilot business is onboarded, automated tests must cover at least two tenants (A and B), two owner users (A and B), an anonymous client and an operator context.
+
+| Test | Expected result |
+|---|---|
+| Anonymous reads published business A | Only public allowlisted fields returned |
+| Anonymous reads draft business/listing | No rows returned |
+| Owner A reads own business/listings | Allowed |
+| Owner A reads business B/private rows | Denied/empty |
+| Owner A inserts a listing for A | Allowed |
+| Owner A inserts a listing for B | Denied |
+| Owner A changes own listing business_id to B | Denied by UPDATE WITH CHECK |
+| Owner A reads/edits B by guessing UUID | Denied |
+| Owner A edits membership or role | Denied |
+| Owner A self-adds to business B | Denied |
+| Duplicate owner membership for one business | Rejected by database constraint |
+| Anonymous reads Promotions or audit events | Denied |
+| Owner A reads Promotions for A | Allowed |
+| Owner A reads Promotions for B | Denied |
+| Owner uploads into another tenant's storage path | Denied |
+| Disabled/revoked owner continues using old session | RLS denies tenant access |
+| Listing references category from another tenant | Rejected |
+| Public listing whose business is unpublished | Not visible |
+| Export contains private settings/Promotions/memberships | Test fails; those fields must be excluded |
+
+Use database-level policy tests (pgTAP or equivalent) and integration tests with real Supabase JWTs. Unit tests that mock RLS are not sufficient. Run static checks for accidental service-role key exposure and public output leakage.
+
+## 12. Delivery sequence and approval gates
+
+| Stage | Deliverable | Gate |
+|---|---|---|
+| 2B.1 | Architecture baseline and data model | Owner approved — recorded here |
+| 2B.2 | Confirm Supabase organization/project target | Owner confirms organization and explicitly approves project creation |
+| 2B.3 | Draft SQL migrations and RLS policies on a feature branch | Review before applying anywhere |
+| 2B.4 | Automated tenant-isolation policy tests | All negative cross-tenant tests pass |
+| 2B.5 | Auth invitation and owner provisioning flow | Security review; no public registration |
+| 2B.6 | Private admin shell and business profile | Owner can manage only own tenant |
+| 2B.7 | Catalogue/category CRUD and image storage | Tenant tests and public/private boundaries pass |
+| 2B.8 | Private Promotions module | No public query/export leakage |
+| 2B.9 | Static storefront data adapter and migration | Existing static fallback remains deployable |
+| 2B.10 | Marketplace export/API contract | Separate scope and approval |
+
+No live database migration, Auth setting change, public deployment, paid service, production merge or destructive action is included in this approval.
+
+## 13. Deferred decisions
+
+These are intentionally not expanded in v1:
+- staff/member roles and multiple owners;
+- public self-service business registration;
+- customer accounts, carts, checkout or payments;
+- direct Marketplace synchronization;
+- public Promotions display;
+- multi-region or high-availability production architecture;
+- custom domains and per-customer backend projects.
+
+## 14. Current status
+
+- Owner-approved architecture decisions: recorded.
+- Logical schema and security model: documented proposal.
+- Supabase project: not created or selected.
+- SQL migrations: not written/applied.
+- RLS policies: not implemented.
+- Authentication/admin UI: not implemented.
+- Production deployment: not authorized.
