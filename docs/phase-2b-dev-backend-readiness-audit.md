@@ -45,7 +45,7 @@ The Starter Dev project reports these applied migrations:
 | `20261109001259` | `phase_2b_admin_api_views` |
 | `20261109002919` | `phase_2b_public_storefront_read_grants` |
 
-The GitHub `main` tree currently has no `supabase/` directory. However, all four matching SQL migration files are present on the existing unmerged branch `phase-2b/owner-admin-interface-foundation`, together with the owner-admin implementation and verification documents. The migration source is therefore recoverable and version-controlled on that branch, but is not yet part of `main`. Treat the remote schema as existing state, not as a disposable environment. Review the branch and reconcile its exact migration history before any new migration is authored or applied.
+The GitHub `main` tree currently has no `supabase/` directory. All four matching SQL migration files and the initial owner-admin implementation were found on the older unmerged branch `phase-2b/owner-admin-interface-foundation`. They have now been ported to a clean review branch based on current `main`: `phase-2b/owner-admin-v1-review`, preserving the merged fictional demo pilot. The migration source is recoverable and version-controlled on the review branch, but is not yet part of `main`. Treat the remote schema as existing state, not as a disposable environment. Review the branch and reconcile its exact migration history before any new migration is authored or applied.
 
 ## 4. Existing schema
 
@@ -128,17 +128,18 @@ The database contains `app_private`, `admin_api` and `public` schemas. SQL metad
 
 ## 7. Owner-admin application branch review
 
-The existing branch `phase-2b/owner-admin-interface-foundation` contains a mobile-first `admin/` interface, four SQL migration files, implementation notes, owner-auth setup guidance, security verification notes and expanded tests. This is substantial existing work and should be reviewed and continued rather than recreated.
+The older source branch `phase-2b/owner-admin-interface-foundation` contained a mobile-first `admin/` interface, four SQL migration files, implementation notes, owner-auth setup guidance, security verification notes and expanded tests. That work was ported to `phase-2b/owner-admin-v1-review`, based on current `main`.
 
-Static code review found these remaining issues or unverified behaviours:
+The clean review branch now addresses three static-review issues:
+1. **Session restoration:** it calls `getSession()` on load so an existing session can be restored after page refresh.
+2. **Multiple business memberships:** it adds a business selector instead of silently choosing the first business returned.
+3. **Currency display:** listing display now uses the currency stored on each listing.
 
-1. **Session restoration:** the client persists Supabase sessions but does not handle the `INITIAL_SESSION` event or load an existing session on page refresh. A previously signed-in owner may be shown the sign-in screen after reopening the admin.
-2. **Multiple business memberships:** the database and implementation notes allow a user to own more than one business, but `loadBusiness()` selects `b.data[0]` without a business switcher. Add a selector or explicitly constrain the product decision; do not silently select the first business.
-3. **Invitation/recovery flow:** the code handles `PASSWORD_RECOVERY` and checks invitation URL markers, but the full invite callback/session path has not been verified through real Auth email links. Test both invite setup and password recovery on the actual admin URL.
-4. **Currency display/input:** listing display and creation hardcode `PGK` even though the database stores a currency code per listing. Use the stored currency for display and make the business currency rule explicit before supporting non-PGK businesses.
-5. **Error and loading states:** network exceptions and some async event-handler failures are not consistently caught and surfaced as safe user messages.
-6. **Incomplete features:** logo/image upload, contact/social editing refinements and data export are not implemented; Storage is not configured.
-7. **Public data sync:** owner changes do not yet update the public static storefront. Keep the current static fallback until a controlled, tested published-data adapter is ready.
+Remaining unverified or incomplete behaviours:
+1. **Invitation/recovery flow:** the code handles invitation/recovery markers and password setup, but real Auth email-link callbacks have not been verified. Test invite setup and password recovery on the actual admin URL.
+2. **Error and loading states:** network exceptions and some async event-handler failures are not consistently caught and surfaced as safe user messages.
+3. **Incomplete features:** logo/image upload, contact/social editing refinements and data export are not implemented; Storage is not configured.
+4. **Public data sync:** owner changes do not yet update the public static storefront. Keep the current static fallback until a controlled, tested published-data adapter is ready.
 
 The UI uses a Supabase publishable key in browser code, not a service-role key. That key is intended for public client use; authorization still depends on RLS and grants. The UI escapes dynamic text inserted into HTML templates and marks the admin page noindex, but these observations do not replace runtime testing.
 
@@ -173,9 +174,8 @@ The UI uses a Supabase publishable key in browser code, not a service-role key. 
 5. Complete and test the invitation/session lifecycle without browser secrets.
 6. Add Storage buckets and tenant-specific Storage policies only after upload requirements are finalized.
 7. Add an append-only audit trail for sensitive events.
-8. Fix session restoration and add a business selector for multiple memberships.
-9. Use each listing's stored currency and implement safe error/loading handling.
-10. Run real browser JWT tests for at least two tenants and anonymous access; re-run Supabase security advisors after remediation.
+8. Verify session restoration, business switching and stored-currency display through browser tests; implement safe error/loading handling.
+9. Run real browser JWT tests for at least two tenants and anonymous access; re-run Supabase security advisors after remediation.
 
 ## 10. Recommended next work order
 
