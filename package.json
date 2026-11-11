@@ -8,7 +8,7 @@
   "scripts": {
     "validate": "node scripts/build.mjs business dist --validate-only",
     "build": "node scripts/build.mjs business dist",
-    "build:examples": "node scripts/build.mjs examples/hardware-supplier dist-examples/hardware-supplier && node scripts/build.mjs examples/general-retail dist-examples/general-retail && node scripts/build.mjs examples/service-provider dist-examples/service-provider",
+    "build:examples": "node scripts/build.mjs examples/hardware-supplier dist-examples/hardware-supplier && node scripts/build.mjs examples/general-retail dist-examples/general-retail && node scripts/build.mjs examples/service-provider dist-examples/service-provider && node scripts/build.mjs examples/demo-pilot dist-examples/demo-pilot",
     "serve": "node scripts/serve.mjs dist",
     "import": "node scripts/import.mjs",
     "test": "node --test tests/storefront.test.mjs"

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0",
+  "businessId": "demo-kumul-buildmart",
+  "name": "Kumul BuildMart (Demo)",
+  "type": "hardware-supplier",
+  "tagline": "Sample building supplies for a stronger home.",
+  "description": "A fictional Papua New Guinea hardware and building-supplies business created only to demonstrate the PNG Business Digital Starter. No real shop, owner, stock, prices or contact service exists.",
+  "brand": {
+    "primary": "#174a3a",
+    "accent": "#ffd166"
+  },
+  "phone": "+67500000009",
+  "whatsapp": "+67500000009",
+  "email": "kumul-buildmart-demo@example.com",
+  "location": {
+    "address": "Sample Road",
+    "town": "Demo Town",
+    "province": "Gulf Province (fictional sample location)"
+  },
+  "social": {
+    "Facebook": "https://example.com/kumul-buildmart-demo"
+  },
+  "currency": {
+    "code": "PGK",
+    "symbol": "K",
+    "position": "before",
+    "decimals": 2
+  },
+  "demo": true
+}
