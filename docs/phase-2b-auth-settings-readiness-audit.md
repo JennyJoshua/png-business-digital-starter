@@ -2,33 +2,32 @@
 
 **Project:** PNG Business Digital Starter Dev  
 **Audit date:** 2026-11-11  
-**Mode:** Read-only public Auth settings inspection. No settings changed and no email sent.
+**Mode:** Read-only public Auth settings inspection. No settings changed by this audit and no email sent.
 
 ## Current public Auth settings response
 
-Read from the project's public `/auth/v1/settings` endpoint using its publishable client key.
+The user turned off **Allow new user signups** in the Supabase dashboard. I independently re-queried the project's public `/auth/v1/settings` endpoint using its publishable client key after the change.
 
-| Setting | Observed value | Assessment |
+| Setting | Verified value | Assessment |
 |---|---|---|
-| `disable_signup` | `false` | **Not compliant** with the approved invitation-only owner model. Public Auth signups are currently enabled at the project level. |
-| `external.email` | `true` | Email provider is enabled. |
-| `external.anonymous_users` | `false` | Anonymous Auth sign-ins are disabled, as required. |
-| `mailer_autoconfirm` | `false` | Email auto-confirmation is off; email confirmation is required. |
-| `site_url` | `null` | The public settings response did not provide a configured Site URL. Confirm the dashboard value before testing links. |
-| `uri_allow_list` | `null` | The public settings response did not provide an allowed redirect list. Confirm the dashboard value before testing links. |
+| `disable_signup` | `true` | **Pass** — public signups are disabled, consistent with invitation-only owner accounts. |
+| `external.email` | `true` | Pass — email provider is enabled. |
+| `external.anonymous_users` | `false` | Pass — anonymous Auth sign-ins are disabled. |
+| `mailer_autoconfirm` | `false` | Pass — email auto-confirmation is off; confirmation is required. |
+| `site_url` | `null` | Not confirmed — set/verify the exact Site URL in the dashboard. |
+| `uri_allow_list` | `null` | Not confirmed — set/verify the exact allowed redirect URL list in the dashboard. |
 
-## Required action before owner onboarding
+## Remaining actions before owner onboarding
 
-1. Disable new user signups in Authentication → Settings / General configuration, preserving invitation-based user creation.
-2. Keep anonymous sign-ins disabled and email confirmation enabled.
-3. Configure the exact Site URL and narrowly scoped redirect allow-list for the selected admin host and any approved development host.
-4. Test an invitation and password-recovery callback end to end before inviting a real business owner.
-5. Verify that a normal public signup attempt is rejected after the setting is changed.
+1. Confirm the exact host that will serve the owner-admin app under `/admin/`.
+2. Set the Supabase Site URL to the selected host and add only the exact admin callback URL plus any approved development callback URL to the redirect allow-list. Avoid broad wildcards.
+3. Test the invitation and password-recovery callbacks end to end.
+4. Test invitation email delivery to a non-organization address before any external business owner is invited. If the default SMTP restriction blocks it, stop and bring options back for approval; do not configure a paid SMTP service without approval.
+5. Only after those tests, consider a real owner invitation and provision the membership after the business and owner details are confirmed.
 
 ## Safety and limitations
 
-- No Auth configuration was changed during this audit.
+- No Auth configuration was changed by this audit; the user made the signup change in the dashboard.
 - No test user was created and no invitation or recovery email was sent.
-- The available Supabase connector exposes project read operations and SQL execution, but no Auth settings update action. Do not attempt to change these settings through an improvised endpoint or by placing any secret key in browser code.
-- A dashboard-level configuration change is required. The setting is a live Auth control, so it should be changed deliberately and then verified through the public settings endpoint.
+- The connected Supabase tools do not provide an Auth-settings update action. The dashboard is the control surface for Site URL and redirect allow-list configuration.
 - No real owner account should be provisioned until the business and owner details are confirmed and the invitation email delivery path is tested.
