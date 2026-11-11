@@ -2,6 +2,11 @@
 -- may change publication_status to published. Owner archive operations are kept
 -- in app_private (not Data API exposed) and exposed through SECURITY INVOKER RPCs.
 
+-- Public category/listing RLS policies check the parent business UUID. Grant
+-- this internal predicate column to anon; app_private is not Data API exposed,
+-- and the UUID is not selected by any public storefront view.
+grant select (id) on app_private.businesses to anon;
+
 -- Business publication is platform-controlled.
 revoke update (publication_status) on app_private.businesses from authenticated;
 revoke update on admin_api.businesses from authenticated;
