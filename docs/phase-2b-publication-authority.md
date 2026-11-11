@@ -24,8 +24,8 @@ Business owners may not:
 The migration `20261111120000_phase_2b_platform_publication_controls.sql`:
 - Revokes owner-role column privileges to insert or update `publication_status` on businesses, categories and listings.
 - Restricts the exposed `admin_api` view grants to editable non-publication columns.
-- Adds `admin_api.archive_category(uuid)` and `admin_api.archive_listing(uuid)` security-definer functions. Each function checks the caller's active owner membership for the exact record before setting status to `archived`.
-- Grants execution of those archive functions to authenticated users only; it does not grant publication authority.
+- Adds `app_private.archive_category(uuid)` and `app_private.archive_listing(uuid)` SECURITY DEFINER implementations in the unexposed schema. Each independently checks `auth.uid()` and the caller's active owner membership for the exact record before setting status to `archived`. Exposed `admin_api` RPCs are SECURITY INVOKER wrappers only.
+- Grants execution of the private implementations and the invoker wrappers to authenticated users only; anonymous callers cannot execute them. The privileged implementation remains outside the exposed Data API schema and does not grant publication authority.
 
 The owner-admin UI no longer sends a publication status on insert and calls the dedicated archive functions. There is no owner-facing publish button.
 
