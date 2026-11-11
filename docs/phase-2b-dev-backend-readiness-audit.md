@@ -13,15 +13,14 @@ A dedicated **PNG Business Digital Starter Dev** Supabase project already exists
 
 The project is not an empty shell. It already has four recorded Phase 2B migrations, seven tenant data tables in a non-public `app_private` schema, admin API views, public storefront views, RLS policies and a clean Supabase security-advisor result.
 
-However, this is not yet a complete or verified owner-admin backend. The audit found:
-- the database does not enforce exactly one owner membership per business;
-- admin API view write grants do not line up with underlying table grants, so intended owner writes are not currently supported by the inspected privileges;
-- public storefront views have unnecessary write privileges granted to `anon` and `authenticated` (the underlying base-table grants appear to block those writes, but the view grants should still be read-only);
+However, this is not yet a complete or end-to-end verified owner-admin backend. The audit found:
+- the database does not enforce exactly one active owner membership per business;
+- public storefront views have unnecessary DML privileges inherited from broad `public` schema default privileges; they should be read-only;
 - there is no Storage bucket or Storage object policy;
 - there are no Edge Functions for trusted operator onboarding/invitation;
 - there is no audit-events table;
-- the remote migrations are not represented by a `supabase/` directory in the current GitHub `main` tree;
-- runtime RLS tests with real user JWTs have not been demonstrated.
+- the four migration files and implementation are on an unmerged feature branch, not yet on `main`;
+- actual browser REST/Auth flows have not been independently verified in this audit; the feature branch's security report documents transaction-scoped SQL role-simulation tests.
 
 **Recommendation:** preserve the existing project and schema. Do not create a second project or apply another migration until the remote schema has been reconciled into source control and the grant/ownership gaps have been reviewed.
 
@@ -155,7 +154,7 @@ The UI uses a Supabase publishable key in browser code, not a service-role key. 
 | Real JWT RLS tests | Not verified | Cross-tenant isolation remains unproven |
 | Versioned migration source in GitHub | No `supabase/` directory on `main` | Remote schema is not reproducible from the repo |
 
-## 8. Security and operational assessment
+## 9. Security and operational assessment
 
 **Positive evidence**
 - Dedicated Starter Dev project exists and is separate from Marketplace.
@@ -178,18 +177,18 @@ The UI uses a Supabase publishable key in browser code, not a service-role key. 
 9. Use each listing's stored currency and implement safe error/loading handling.
 10. Run real browser JWT tests for at least two tenants and anonymous access; re-run Supabase security advisors after remediation.
 
-## 9. Recommended next work order
+## 10. Recommended next work order
 
 | Priority | Work | Environment |
 |---|---|---|
-| 1 | Recover/reconcile migration source into GitHub and review drift | Repository only; read-only database inspection |
+| 1 | Review the four migration files on the existing feature branch against the four applied remote migration records | Repository and read-only database inspection |
 | 2 | Produce a remediation migration proposal for owner uniqueness and grants | Feature branch only |
 | 3 | Add a real JWT tenant-isolation test plan/harness | Development project only after test accounts are approved |
 | 4 | Implement and verify the trusted invitation process | Development project after review |
 | 5 | Add Storage and audit events | Development project after requirements and migration review |
 | 6 | Build the owner-admin interface against the verified API | Feature branch; no production deployment |
 
-## 10. Scope and non-actions
+## 11. Scope and non-actions
 
 This audit was read-only. It did not:
 - insert, update or delete business/user rows;
@@ -202,6 +201,6 @@ This audit was read-only. It did not:
 - change the Materials Marketplace projects;
 - deploy or publish the Starter storefront.
 
-## Conclusion
+## 12. Conclusion
 
 The existing Starter Dev project is the correct environment to continue investigating; a duplicate project is unnecessary. The current schema is a useful Phase 2B foundation, but it is not yet proven ready for owner-admin use. The next work should reconcile source control and correct the specific privilege and one-owner constraints before building the UI or onboarding a real business.
