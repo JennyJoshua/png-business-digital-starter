@@ -216,4 +216,11 @@ begin
 end;
 $$;
 
-\echo 'PASS: platform-only publication controls and tenant-scoped owner archiving'
+-- Public child-record RLS policies must evaluate without leaking private IDs.
+set role anon;
+select count(*) from public.storefront_businesses;
+select count(*) from public.storefront_categories;
+select count(*) from public.storefront_listings;
+reset role;
+
+\echo 'PASS: platform-only publication controls, tenant-scoped owner archiving, and anonymous storefront reads'
