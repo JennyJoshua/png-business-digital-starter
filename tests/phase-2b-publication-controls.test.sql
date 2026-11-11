@@ -225,7 +225,7 @@ where listing_id='seed-listing' and business_id=(select id from app_private.busi
 
 -- Public child-record RLS policies must evaluate without leaking private IDs.
 set role anon;
-do $
+do $$
 begin
   if (select count(*) from public.storefront_businesses) <> 1 then
     raise exception 'anonymous business storefront visibility is incorrect';
@@ -237,7 +237,7 @@ begin
     raise exception 'anonymous listing storefront visibility is incorrect';
   end if;
 end;
-$;
+$$;
 reset role;
 
 \echo 'PASS: platform-only publication controls, tenant-scoped owner archiving, and anonymous storefront visibility'
