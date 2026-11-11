@@ -21,10 +21,10 @@ Real-browser checks (optional, needs Python Playwright): `python3 tests/browser/
 ## Phase 2B owner-admin development
 
 - Development backend: the existing `PNG Business Digital Starter Dev` Supabase project, separate from PNG Materials Marketplace.
-- One shared multi-tenant backend; invited owner accounts only; one active owner per business is the approved target.
-- SQL migration history and owner-admin source are being reviewed on the Phase 2B feature branch.
-- The admin interface is built under `/admin/`, uses a Supabase publishable key, and relies on database grants and RLS for authorization.
-- Before any real owner onboarding: verify Data API schema exposure, Auth signup/anonymous settings, invitation and recovery email delivery, browser CRUD, tenant isolation, and the one-owner-per-business database constraint.
+- One shared multi-tenant backend; invited owner accounts only; one active owner per business is enforced by the pending security-remediation migration.
+- SQL migrations and owner-admin source are under review in draft PR #8; one-active-owner and public-view privilege hardening are in stacked draft PR #9.
+- The admin interface is built under `/admin/`, uses a Supabase publishable key, and relies on database grants and RLS for authorization. Business owners can prepare drafts but only platform administrators may publish businesses, categories, products or services.
+- Before any real owner onboarding: finish PostgreSQL 17 CI tests, approve/apply pending migrations, verify Data API/Auth settings, test invitation and recovery email delivery, browser CRUD and tenant isolation, and build the platform-admin publication workflow.
 - Storage uploads, audit events, public storefront synchronization and production infrastructure are still outstanding.
 - Do not use the Free development project for live customer data or production. See the Phase 2B implementation and readiness documents.
 
