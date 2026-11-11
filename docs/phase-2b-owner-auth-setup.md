@@ -3,7 +3,7 @@
 **Project:** PNG Business Digital Starter Dev  
 **Project ref:** `rwcwvqlgyckfdrglsbfg`  
 **Dashboard:** https://supabase.com/dashboard/project/rwcwvqlgyckfdrglsbfg  
-**Status:** Public signup is disabled and verified. GitHub Pages is the selected host. The Pages project site is live (HTTP 200) and currently serves the public demo storefront. The `/admin/` path currently returns HTTP 404 because the Phase 2B admin app remains on an unmerged branch. Site URL/redirect allow-list and invitation delivery remain outstanding.
+**Status:** Public signup is disabled and verified. GitHub Pages is the selected host. The Pages project site is live (HTTP 200) and currently serves the public demo storefront. The `/admin/` path is not yet deployed because the Phase 2B admin app remains on an unmerged branch. The user confirmed the Site URL and exact admin Redirect URL in the Supabase dashboard on 2026-11-11; invitation delivery and end-to-end callback testing remain outstanding.
 
 ## 1. Data API schema exposure
 
@@ -59,7 +59,7 @@ Set the Supabase Authentication URL configuration as follows:
 - Add a local development callback only if it is actually needed for a controlled test.
 - Do not add broad wildcards or unrelated preview URLs.
 
-The application calls `resetPasswordForEmail(..., { redirectTo: window.location.href })`; invitation/recovery links must therefore be allowed to return to the exact `/admin/` page. The Supabase public settings endpoint currently returned `null` for `site_url` and `uri_allow_list`, so these dashboard settings still need to be configured and verified.
+The application now calls `resetPasswordForEmail(..., { redirectTo: window.location.origin + window.location.pathname })` so query/hash tokens are not carried into the redirect. On 2026-11-11, the user confirmed in the Supabase dashboard that the Site URL is `https://jennyjoshua.github.io/png-business-digital-starter/` and the Redirect URL allow-list includes `https://jennyjoshua.github.io/png-business-digital-starter/admin/`. This is user-confirmed, not independently re-read by the verification connection.
 
 Do not set these URLs based only on an assumed hostname if the repository's Pages settings show a custom domain or a different published URL.
 
@@ -94,8 +94,9 @@ The SQL statement must be prepared only after the business name, permanent busin
 - Active owner membership lookup through `admin_api.business_memberships`.
 - Tenant-scoped business, category, listing and private Promotions views.
 - Business profile and brand-colour editing.
-- New categories and listings are created as drafts.
-- Category/listing removal uses archive status; private Promotions can be deleted.
+- New categories and listings are created as drafts by database default; the owner app cannot set publication status.
+- Only platform administrators may publish businesses, categories, products and services. Owners can archive their own categories/listings through narrowly scoped database functions; they cannot publish or unarchive them.
+- Private Promotions can be deleted.
 - Promotions are never rendered on the public storefront.
 - No logo/image upload yet; Storage bucket and object policies are a later security task.
 - No live storefront sync yet; the existing public site continues to use its current static build data.
