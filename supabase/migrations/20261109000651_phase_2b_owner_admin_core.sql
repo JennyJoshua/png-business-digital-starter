@@ -237,6 +237,9 @@ grant insert (business_id,bucket_id,object_path,visibility,mime_type,byte_size,a
 grant update (visibility,mime_type,byte_size,alt_text) on app_private.asset_metadata to authenticated;
 grant delete on app_private.asset_metadata to authenticated;
 
+-- RLS policies for public categories/listings use businesses.id to verify that
+-- the parent business is published. app_private remains unexposed through the Data API.
+grant select (id) on app_private.businesses to anon;
 grant select (business_id,slug,name,business_type,tagline,description,phone,whatsapp,email,website_url,address_line,town,province,country_code,logo_path,cover_image_path,brand_primary,brand_accent,social_links,publication_status)
 on app_private.businesses to anon;
 grant select (id,business_id,category_id,name,slug,description,sort_order,publication_status)
