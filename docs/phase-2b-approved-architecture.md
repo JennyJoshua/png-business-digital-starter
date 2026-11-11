@@ -62,21 +62,33 @@ The current static generator remains operational during the backend build. Migra
 
 The database must enforce the one-owner-per-business constraint; it must not rely on frontend logic.
 
-## 5. Proposed logical schema
+## 5. Logical schema — existing v1 baseline and approved target
 
-This is a reviewed design proposal, not executable migration SQL. Exact column types, indexes, constraints and policies will be finalized in the migration review.
+The dedicated development project already has the following seven canonical tables in the non-public `app_private` schema. Preserve these table and identifier conventions; do not introduce parallel duplicate entities.
 
-| Table | Key fields and constraints | Purpose |
+| Existing table | Existing fields/constraints | Purpose and approved target |
 |---|---|---|
-| `businesses` | `id` UUID PK; `business_code` unique stable external ID; `slug` unique; `status`; public profile fields; timestamps | Canonical tenant and public business profile |
-| `business_memberships` | `id`; `business_id` FK UNIQUE; `user_id` FK to Auth; `role` constrained to `owner`; `status`; timestamps | One authorized owner per business |
-| `business_private_settings` | `business_id` PK/FK; private settings and operational metadata | Owner-only configuration |
-| `categories` | `id`; `business_id` FK; stable `category_code`; name; active flag; unique (`business_id`, `category_code`) | Tenant-scoped product/service taxonomy |
-| `listings` | `id`; `business_id` FK; stable `listing_code`; `listing_type` product/service; title; description; price; ISO currency code; unit; publication status; timestamps; unique (`business_id`, `listing_code`) | Canonical catalogue |
-| `listing_categories` | `listing_id` FK; `category_id` FK; composite unique key | Listing/category relationships with tenant-consistency enforcement |
-| `promotions` | `id`; `business_id` FK; title/content; status; start/end metadata | Private owner-managed promotions; no public read policy in v1 |
-| `asset_metadata` | `id`; `business_id` FK; storage path; asset type; visibility; timestamps | Tracks business logos and listing media |
-| `audit_events` | event ID; business ID; actor user ID; action; target type/ID; timestamp; safe metadata | Records sensitive owner/admin changes; append-only to normal owners |
+| `businesses` | UUID `id`; stable unique text `business_id`; unique `slug`; name/type/profile/contact/location/branding fields; `publication_status` | Canonical tenant and public profile. Preserve the stable `business_id` as the portable external business identifier. |
+| `business_memberships` | UUID `id`; `business_id` FK; `user_id` FK to Auth; role constrained to `owner`; status/invitation timestamps; currently unique (`business_id`, `user_id`) | Owner-to-tenant authorization. **Target constraint:** enforce one active owner per business at database level after checking for existing duplicates; the current unique pair does not yet enforce this. |
+| `business_private_settings` | `business_id` primary key/FK; internal notes; operational metadata | Owner-only settings. |
+| `categories` | UUID `id`; `business_id` FK; stable text `category_id`; name/slug/description/order/publication status; unique tenant/category ID | Business-scoped product/service taxonomy. Preserve `category_id`. |
+| `listings` | UUID `id`; `business_id` FK; stable text `listing_id`; optional `category_id`; `kind` product/service; name/slug/description; numeric price; ISO currency code; price unit; availability/publication status; image path/order | Canonical product/service catalogue. Preserve `listing_id`; a listing belongs to at most one category in v1 through the same-business composite foreign key. |
+| `promotions` | UUID `id`; `business_id` FK; title/internal copy/status/date range | Private owner-managed Promotions; no public read path in v1. |
+| `asset_metadata` | UUID `id`; `business_id` FK; bucket/path; visibility; MIME type/size/alt text/creator | Tracks logo and listing media. Storage buckets and object policies are not yet configured. |
+| `audit_events` | Not present in the current database | Proposed addition for append-only logging of sensitive owner/operator actions; add only through a reviewed migration. |
+
+### Existing schema rules to preserve
+
+- UUIDs are internal database identifiers. Stable `business_id`, `category_id` and `listing_id` values remain portable external identifiers.
+- A listing code is unique within a business and is not silently recycled after archival.
+- Every listing has an explicit `kind` of product or service.
+- Monetary values are numeric and paired with an explicit ISO currency code. The current database defaults to PGK for PNG-first onboarding; the owner UI must display each listing's stored currency rather than hardcoding a display value.
+- Listing unit/price-note semantics must be normalized and validated; free-form notes are not silently mapped into a unit.
+- Publication status is explicit. Public listings are readable only when both the listing and its parent business are published.
+- Promotions are private in v1. No public view, public export or anonymous policy may return their content.
+- Public response contracts use explicit field allowlists, not unrestricted row serialization.
+- The existing composite foreign key prevents a listing from referencing a category belonging to another business.
+- Keep the current one-category-per-listing model unless multi-category listings are separately approved; no join table is required for v1.
 
 ### Data invariants
 
