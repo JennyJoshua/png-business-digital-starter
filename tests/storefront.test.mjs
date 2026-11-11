@@ -232,6 +232,8 @@ test('owner admin: private app is built, restores sessions, supports business sw
     assert.ok(app.includes('getSession()'), 'stored sessions must be restored after page reload');
     assert.ok(app.includes('loadCurrentBusiness'), 'owners must be able to switch between their authorized businesses');
     assert.ok(app.includes('l.currency'), 'listing display must use the stored currency');
+    assert.ok(app.includes('unhandledrejection'), 'unexpected network failures must be shown as user-facing errors');
+    assert.ok(app.includes('redirectTo:window.location.origin + window.location.pathname'), 'recovery callbacks must use a stable admin URL');
   }
 });
 
