@@ -184,19 +184,19 @@ $("#branding-form").addEventListener("submit",async e=>{
 $("#category-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget,name=value(f,"name"),description=value(f,"description");
   const categorySlug=slug(name); if(!categorySlug){message(appMessage,"Use letters or numbers in the category name.");return;}
-  const payload={business_id:currentBusinessId,category_id:categorySlug,name,slug:categorySlug,description:description||null,sort_order:categories.length,publication_status:"draft"};
+  const payload={business_id:currentBusinessId,category_id:categorySlug,name,slug:categorySlug,description:description||null,sort_order:categories.length};
   const r=await adminDb.from("categories").insert(payload);
   if(r.error){message(appMessage,friendlyError(r.error));return;}
-  f.reset();await refreshAll();message(appMessage,"Category added as a draft. Publish it only after reviewing it.",true);
+  f.reset();await refreshAll();message(appMessage,"Category saved as a draft. Platform administrators control publication.",true);
 });
 $("#listing-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget,name=value(f,"name"),price=value(f,"price");
   const listingSlug=slug(name); if(!listingSlug){message(appMessage,"Use letters or numbers in the listing name.");return;}
-  const payload={business_id:currentBusinessId,listing_id:listingSlug,category_id:value(f,"category_id")||null,kind:value(f,"kind"),name,slug:listingSlug,description:value(f,"description")||null,price:price===""?null:Number(price),currency:"PGK",availability_status:value(f,"availability_status")||null,publication_status:"draft",sort_order:listings.length};
+  const payload={business_id:currentBusinessId,listing_id:listingSlug,category_id:value(f,"category_id")||null,kind:value(f,"kind"),name,slug:listingSlug,description:value(f,"description")||null,price:price===""?null:Number(price),currency:"PGK",availability_status:value(f,"availability_status")||null,sort_order:listings.length};
   if(price!==""&&(!Number.isFinite(payload.price)||payload.price<0)){message(appMessage,"Enter a valid non-negative price.");return;}
   const r=await adminDb.from("listings").insert(payload);
   if(r.error){message(appMessage,friendlyError(r.error));return;}
-  f.reset();await refreshAll();message(appMessage,"Listing added as a draft. Review it before publishing.",true);
+  f.reset();await refreshAll();message(appMessage,"Listing saved as a draft. Platform administrators control publication.",true);
 });
 $("#promotion-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget,starts=value(f,"starts_at"),ends=value(f,"ends_at");
@@ -209,8 +209,8 @@ $("#promotion-form").addEventListener("submit",async e=>{
 document.addEventListener("click",async e=>{
   const cat=e.target.closest("[data-archive-category]"),listing=e.target.closest("[data-archive-listing]"),promo=e.target.closest("[data-delete-promotion]");
   let r;
-  if(cat){if(!confirm("Archive this category? Existing listings will remain, but the category will no longer be available for new listings."))return;r=await adminDb.from("categories").update({publication_status:"archived"}).eq("id",cat.dataset.archiveCategory);}
-  if(listing){if(!confirm("Archive this listing? It will no longer appear in the public catalogue."))return;r=await adminDb.from("listings").update({publication_status:"archived"}).eq("id",listing.dataset.archiveListing);}
+  if(cat){if(!confirm("Archive this category? Existing listings will remain, but the category will no longer be available for new listings."))return;r=await adminDb.rpc("archive_category",{p_category_id:cat.dataset.archiveCategory});}
+  if(listing){if(!confirm("Archive this listing? It will no longer appear in the public catalogue."))return;r=await adminDb.rpc("archive_listing",{p_listing_id:listing.dataset.archiveListing});}
   if(promo){if(!confirm("Delete this private promotion? This cannot be undone."))return;r=await adminDb.from("promotions").delete().eq("id",promo.dataset.deletePromotion);}
   if(r){if(r.error){message(appMessage,friendlyError(r.error));return;}await refreshAll();message(appMessage,"Changes saved.",true);}
 });
