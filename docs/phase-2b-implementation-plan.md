@@ -1,6 +1,6 @@
 # Phase 2B — Owner Admin Implementation Plan
 
-**Working branch:** `phase-2b/owner-admin-interface-foundation`  
+**Working branch:** `phase-2b/owner-admin-v1-review`  
 **Baseline:** latest merged `main`  
 **Status:** multi-tenant database schema, RLS foundation, public storefront views, authenticated admin API views and initial private owner-admin app implemented on the approved development branch. Dashboard Auth/Data API configuration and real owner provisioning remain outstanding.
 
@@ -49,6 +49,8 @@ Provider, tenant model, project, owner onboarding direction and initial role are
 - Sign-in, sign-out, password recovery and invitation password setup are implemented in `admin/`.
 - Tenant membership lookup uses the protected `admin_api` schema.
 - Profile and brand-colour editing, category/listing create/archive, and private Promotions create/delete are implemented.
+- Session restoration after page reload and a business selector for users with multiple authorized businesses are included in the review branch.
+- Listing price display uses each listing's stored currency code.
 - User confirmed the Data API schema allowlist was saved with `public` and `admin_api` exposed and `app_private` unexposed; verify through real REST requests.
 - Configure and verify Auth settings using [Owner Auth setup](phase-2b-owner-auth-setup.md).
 - Test email invitation delivery before inviting a real owner; no owner account has been provisioned.
@@ -60,6 +62,7 @@ Provider, tenant model, project, owner onboarding direction and initial role are
 - Mobile-first dashboard and navigation; business profile and brand-colour editing.
 - Category/listing creation and archive; private Promotions create/delete.
 - Still to implement: logo/image upload, contact/social editing refinements, data export, and further QA.
+- The current public static storefront is still the fallback; owner edits do not yet synchronize to public pages.
 
 ### 2B.6 — Public storefront integration
 - Read only published, allowlisted fields through the public views.
@@ -98,10 +101,13 @@ Provider, tenant model, project, owner onboarding direction and initial role are
 
 ## Remaining implementation gates
 
-1. Verify the user-saved Data API exposed-schema list through actual REST requests (`public` and `admin_api` exposed; `app_private` unexposed).
-2. Configure and verify Auth invitation-only settings and email delivery; no owner account has been provisioned.
-3. Run browser integration tests through the actual Data API after dashboard configuration.
-4. Set up Storage bucket and object policies before enabling logo/listing image upload.
-5. Implement the public data adapter; the current static storefront is not yet synchronised with owner edits.
+1. Verify the Data API exposed-schema list through actual REST requests (`public` and `admin_api` exposed; `app_private` unexposed).
+2. Add a database constraint for exactly one active owner per business; the current unique (`business_id`, `user_id`) constraint permits multiple owners.
+3. Revoke inherited DML privileges from the three public storefront views and retain SELECT only.
+4. Configure and verify Auth invitation-only settings and email delivery; no owner account has been provisioned.
+5. Run browser integration tests through the actual Data API after dashboard configuration.
+6. Set up Storage bucket and object policies before enabling logo/listing image upload.
+7. Implement the public data adapter; the current static storefront is not yet synchronised with owner edits.
+8. Add an append-only audit trail and complete owner invitation/provisioning workflow.
 
 The current database foundation is development-only. No production deployment, live customer onboarding, or merge to `main` is authorized by this phase.
