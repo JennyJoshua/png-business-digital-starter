@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - "phase-2b/**"
 
 permissions:
   contents: read
