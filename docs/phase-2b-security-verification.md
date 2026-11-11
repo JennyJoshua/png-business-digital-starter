@@ -1,82 +1,128 @@
-# Phase 2B — Security Verification
+# Phase 2B — Security Verification and Readiness
 
 **Environment:** `PNG Business Digital Starter Dev`  
 **Project ref:** `rwcwvqlgyckfdrglsbfg`  
 **Region:** `ap-southeast-2` (Sydney)  
-**Verification date:** 9 November 2026  
-**Branch:** `phase-2b/owner-admin-interface-foundation`
+**Review date:** 11 November 2026  
+**Owner-admin branch:** `phase-2b/owner-admin-v1-review`  
+**Security-remediation branch:** `phase-2b/security-remediation`
 
-## Implemented foundation
+## Current decision and rollout status
 
-- Seven application tables under `app_private`; RLS enabled on all seven.
-- 22 policies covering anonymous publication reads, active-owner reads/writes and private data.
-- Three explicit public views: `public.storefront_businesses`, `public.storefront_categories`, `public.storefront_listings`.
-- Seven security-invoker views under `admin_api`, granted only to authenticated users.
-- Public and admin views use explicit column lists and invoke underlying table privileges/RLS.
-- Anonymous `SELECT` is granted only on the three public-read base tables (`businesses`, `categories`, `listings`); their existing RLS policies restrict rows to published records belonging to published businesses. Promotions, memberships, private settings and asset metadata remain inaccessible to `anon`.
-- Promotions, memberships, private settings and asset metadata are not included in public views.
-- User confirmed that `admin_api` was added to the Data API exposed-schema list in the Supabase Dashboard and saved, with `public` retained and `app_private` left unexposed. The setting has not yet been independently verified through a browser REST request; that is still required.
-- No SECURITY DEFINER function was created.
-- Membership writes are not granted to authenticated users; stable external identifiers are not updateable through normal owner grants.
+- Business owners may edit their business profile and prepare category/product/service drafts.
+- **Only platform administrators may publish a business, category, product or service listing.** This is the user's explicit Option B decision, confirmed 11 November 2026.
+- Owners may archive their own categories/listings through membership-checked RPCs; they cannot publish or unarchive records.
+- PR #8 contains the owner-admin foundation and publication-control migration.
+- PR #9 contains one-active-owner enforcement and public-view privilege hardening; it is stacked on PR #8.
+- Both PRs remain draft/unmerged. The new migrations in PR #8 and PR #9 have **not** been applied to the hosted Supabase project.
+- No owner account has been invited, no real business data has been created, and no production deployment has occurred.
 
-## Tests performed
+## Hosted Supabase state — previously applied migrations
 
-Temporary fixtures used two test Auth users and two business tenants. The SQL checks ran inside transactions and were rolled back; no test users or business records were retained.
+The following four migrations are present in the hosted development project's migration history:
 
-| Test | Result |
-|---|---|
-| Anonymous public views return published businesses | PASS — earlier transaction-scoped fixtures |
-| Anonymous public views return published listings only | PASS — draft listing omitted |
-| Anonymous role has no SELECT privilege on Promotions | PASS |
-| Anonymous role has no SELECT privilege on memberships | PASS |
-| Anonymous role can query all three public views after least-privilege grants | PASS — zero rows returned in the empty development project; no permission error |
-| Owner A sees their own business only | PASS |
-| Owner A sees own draft and published listings | PASS |
-| Owner A reads own private Promotions | PASS |
-| Owner A cannot see tenant B's business/listing | PASS |
-| Owner A cross-tenant listing update affects zero rows | PASS |
-| Owner A cross-tenant listing insert is rejected by RLS | PASS |
-| Authenticated role cannot update memberships or self-promote | PASS — no UPDATE privilege |
-| Authenticated role cannot insert businesses directly | PASS — no INSERT privilege |
-| Owner cannot update stable business identifier | PASS — no column UPDATE privilege |
-| Owner API view returns only the signed-in owner's business | PASS |
-| Owner API membership view returns only own active membership | PASS |
-| Anonymous role has no usage on `admin_api` | PASS |
-| Anonymous role has no SELECT on admin Promotions view | PASS |
-| Authenticated role cannot insert/update membership view | PASS — no privileges |
+1. `20261109000651_phase_2b_owner_admin_core`
+2. `20261109000726_phase_2b_public_read_and_fk_indexes`
+3. `20261109001259_phase_2b_admin_api_views`
+4. `20261109002919_phase_2b_public_storefront_read_grants`
 
-## Supabase advisors
+The core schema has seven application tables in `app_private`, RLS enabled on all seven, membership-based owner policies, three public storefront views, and seven authenticated `admin_api` views. Admin/public views use `security_invoker = true`.
 
-- **Security Advisor:** no findings at verification time.
-- **Performance Advisor:** no unindexed foreign-key findings after adding indexes for the two flagged foreign keys. It reports unused indexes as informational because the new development schema has no retained production workload; review index usage after real test traffic.
+## Live configuration evidence
 
-## Migration history
+### Data API exposure and anonymous REST
 
-- `20261109000651` — `phase_2b_owner_admin_core`
-- `20261109000726` — `phase_2b_public_read_and_fk_indexes`
-- `20261109001259` — `phase_2b_admin_api_views`
-- `20261109002919` — `phase_2b_public_storefront_read_grants`
+The earlier live audit confirmed:
+- Exposed schemas: `public`, `graphql_public`, and `admin_api`.
+- `app_private` is not exposed.
+- Anonymous access to `admin_api` is denied.
+- Anonymous GET requests to the three public storefront views returned HTTP 200 with empty result sets in the then-empty development project.
 
-All four SQL files are version-controlled under `supabase/migrations/`.
+**Additional test finding:** a seeded PostgreSQL 17 integration test exposed a missing internal column privilege needed by the category/listing RLS parent-business check. The pending PR #8 migration grants `anon` SELECT on `app_private.businesses.id` solely for that policy predicate. The schema remains unexposed, and the public storefront views do not select or return this UUID. This fix must be applied before anonymous catalogue reads are considered ready.
 
-## Important remaining checks
+### Auth settings
 
-1. User reports the exposed schema list was saved with `public` and `admin_api`; verify it through actual REST requests, and ensure `app_private` remains unexposed.
-2. Configure and verify Auth invitation-only settings before any owner account is provisioned.
-3. Test through the actual Supabase REST/Data API and browser client after schema exposure and Auth configuration; SQL role simulation is not a substitute.
-4. Add Storage bucket/object policies before enabling image upload.
-5. Repeat the security tests whenever RLS policies, grants, views or tenant relationships change.
+A fresh public Auth settings check previously confirmed:
+- `disable_signup=true` — public self-registration disabled.
+- Email provider enabled.
+- Anonymous Auth sign-ins disabled.
+- Email auto-confirm disabled; email confirmation required.
 
-**Scope:** This verifies the core database boundary only. It does not mean the admin UI, authentication workflow, Storage uploads or production readiness are complete.
+On 11 November 2026, the user personally checked Supabase Authentication → URL Configuration and confirmed:
 
+| Setting | User-confirmed value | Evidence status |
+|---|---|---|
+| Site URL | `https://jennyjoshua.github.io/png-business-digital-starter/` | User-confirmed in dashboard; not independently re-read by the verification connection |
+| Redirect URL allow-list | `https://jennyjoshua.github.io/png-business-digital-starter/admin/` | User-confirmed in dashboard; not independently re-read by the verification connection |
+
+No invitation or password-recovery email has been sent. Email delivery to an external owner address and end-to-end PKCE callbacks remain untested.
 
 ## Owner-admin application security review
 
-- Browser client uses only the Supabase publishable key; no secret/service-role key is included.
-- Every owner-data request is explicitly scoped to `admin_api`.
-- The application contains no public registration flow.
-- New categories/listings default to draft; archive actions do not hard-delete them.
-- Promotions are managed only in the authenticated owner area and remain absent from public storefront output.
-- CI passed JavaScript syntax validation, automated tests, starter-data validation and demonstration builds.
+- Browser code contains only the Supabase publishable key; no secret/service-role key is shipped to the browser.
+- No public owner registration or `signUp()` call exists.
+- The app queries active owner memberships and filters to role `owner`.
+- Business/category/listing/promotions queries are tenant-scoped.
+- The business selector is disabled while tenant data loads; the admin panel is made inert during the switch.
+- Password recovery uses a stable callback URL based on the admin page's origin and pathname.
+- Unexpected promise/network failures now produce user-facing feedback.
+- Promotions remain private to the owner-admin area and are not included in the public storefront.
+- Owners can create and edit drafts, but cannot set publication status. Publication status is enforced by database column grants, not merely by hiding UI controls.
+- Privileged archive implementations are SECURITY DEFINER functions in unexposed `app_private`; exposed `admin_api` RPCs are SECURITY INVOKER wrappers. Both private functions independently require `auth.uid()` and an active owner membership for the target record.
+- The public storefront is still a static build. Owner edits do not yet synchronize to public pages.
 
-**Not yet end-to-end verified:** Data API exposure through actual REST requests, Auth signup/anonymous settings, invitation/recovery email delivery, actual browser sign-in and owner CRUD through the REST API. These remain go-live blockers; see [Owner Auth setup](phase-2b-owner-auth-setup.md).
+## PostgreSQL 17 integration tests
+
+CI now starts a disposable PostgreSQL 17 service and runs real SQL integration tests. No live Supabase data is used.
+
+The publication-control test covers:
+- Owner can read their own business but not another tenant's business.
+- Owner can create and edit category/listing drafts.
+- New categories/listings default to `draft`.
+- Owner cannot insert/update `publication_status` for businesses, categories or listings.
+- Owner can archive own categories/listings through the RPC wrappers.
+- Owner cannot archive another tenant's records.
+- The privileged implementation is in unexposed `app_private`; exposed wrappers are invoker-rights.
+- Platform-admin publication causes only approved published records to appear in anonymous storefront views.
+
+The security-remediation test covers:
+- Duplicate active owner membership is rejected.
+- Public storefront views grant SELECT only to `anon` and `authenticated`.
+- Future tables created by both `postgres` and `supabase_admin` do not inherit broad public API privileges.
+
+CI is the source of truth for each commit. Do not treat an earlier green run as covering a later commit.
+
+## Pending security migrations
+
+### PR #8 — platform publication controls
+
+The migration:
+- Removes owner publication-status insert/update privileges.
+- Narrows `admin_api` view grants to editable content columns.
+- Adds private membership-checked archive implementations and invoker RPC wrappers.
+- Adds the internal `businesses.id` read privilege required for public child-row RLS checks while keeping `app_private` unexposed.
+
+### PR #9 — membership and public API hardening
+
+The migration:
+- Stops if duplicate active owners exist; it never edits membership rows.
+- Adds a partial unique index enforcing one active owner per business.
+- Revokes all DML on the three public storefront views and grants SELECT only.
+- Revokes broad per-schema default table privileges for `postgres` and `supabase_admin`.
+
+Neither migration has been applied to the hosted project.
+
+## Remaining go-live blockers
+
+1. Complete CI on the latest heads of PR #8 and PR #9, including both PostgreSQL 17 integration suites.
+2. Complete a final human review of both migrations and the stacked PR dependency.
+3. Explicit owner approval is required before merging either PR or applying any hosted migration.
+4. After approved merge/deployment, verify the live `/admin/` route and test invitation/password-recovery PKCE callbacks in a real browser.
+5. Verify invitation email delivery to a non-organization address before inviting an owner. Do not configure paid SMTP without separate approval.
+6. Run browser tests using a real invited test owner: sign-in, draft CRUD, archive, cross-tenant denial, and direct API attempts to publish.
+7. Build the platform-admin review/publish workflow; publication remains a controlled platform-admin operation outside the owner UI until that exists.
+8. Add Storage bucket/object policies before enabling image uploads.
+9. Implement storefront synchronization, an append-only audit trail, backup/recovery and a separately approved production hosting plan.
+10. Confirm server-side password policy settings; the admin UI's client-side password-length check alone is not a security boundary.
+
+**Conclusion:** The Phase 2B owner-admin code and database controls are still under review. The automated PostgreSQL tests are a meaningful improvement, but no production readiness, live owner onboarding, hosted migration or deployment is authorized by this review.
