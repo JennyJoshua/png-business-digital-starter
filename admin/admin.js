@@ -9,7 +9,7 @@ const adminDb = supabase.schema('admin_api');
 
 const $ = (s) => document.querySelector(s);
 const authPanel = $("#auth-panel"), appPanel = $("#app-panel"), authMessage = $("#auth-message"), appMessage = $("#app-message");
-let currentUser = null, currentBusiness = null, currentBusinessId = null, categories = [], listings = [], promotions = [], recoveryFlow = false;
+let currentUser = null, currentBusiness = null, currentBusinessId = null, ownerBusinesses = [], categories = [], listings = [], promotions = [], recoveryFlow = false;
 const esc = (v = "") => String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const slug = (v) => String(v).normalize("NFKD").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,70);
 const message = (el, value, ok = false) => { el.textContent = value || ""; el.classList.toggle("success", ok); };
@@ -46,24 +46,45 @@ function friendlyError(error) {
 }
 async function loadBusiness() {
   message(appMessage, "Checking your business access…");
-  const m = await adminDb.from("business_memberships").select("business_id,role,status").eq("status","active");
+  const m = await adminDb.from("business_memberships")
+    .select("business_id,role,status")
+    .eq("user_id", currentUser.id)
+    .eq("status", "active");
   if (m.error) throw m.error;
   if (!m.data?.length) throw new Error("Your account is signed in, but it has no active business-owner access. Ask the administrator to complete your business invitation.");
-  const memberships = m.data;
-  const ids = memberships.map(x => x.business_id);
-  const b = await adminDb.from("businesses").select("*").in("id", ids).order("created_at");
+  const ids = m.data.map(x => x.business_id);
+  const fields = "id,business_id,slug,name,business_type,tagline,description,phone,whatsapp,email,website_url,address_line,town,province,country_code,logo_path,cover_image_path,brand_primary,brand_accent,social_links,publication_status,created_at,updated_at";
+  const b = await adminDb.from("businesses").select(fields).in("id", ids).order("created_at");
   if (b.error) throw b.error;
-  if (!b.data?.length) throw new Error("Your owner membership exists, but its business record could not be loaded. Contact the administrator.");
-  currentBusiness = b.data[0];
-  currentBusinessId = currentBusiness.id;
+  ownerBusinesses = b.data || [];
+  if (!ownerBusinesses.length) throw new Error("Your owner membership exists, but its business record could not be loaded. Contact the administrator.");
+  const wrap = $("#business-switch-wrap"), select = $("#business-switch");
+  select.replaceChildren();
+  for (const business of ownerBusinesses) {
+    const option = document.createElement("option");
+    option.value = business.id;
+    option.textContent = business.name;
+    select.append(option);
+  }
+  wrap.hidden = ownerBusinesses.length < 2;
+  const selectedId = ownerBusinesses.some(x => x.id === currentBusinessId) ? currentBusinessId : ownerBusinesses[0].id;
+  await loadCurrentBusiness(selectedId);
+  if (recoveryFlow) { authPanel.hidden = false; appPanel.hidden = true; showAuth("password"); }
+  else showApp();
+}
+async function loadCurrentBusiness(id) {
+  const selected = ownerBusinesses.find(x => x.id === id);
+  if (!selected) throw new Error("That business is not available to your account.");
+  currentBusiness = selected;
+  currentBusinessId = selected.id;
+  $("#business-switch").value = selected.id;
   $("#welcome-title").textContent = currentBusiness.name;
   $("#business-status").textContent = "Publication status: " + currentBusiness.publication_status + ". Changes made here are stored in your private business record.";
+  message(appMessage, "Loading business data…");
   await Promise.all([loadCategories(), loadListings(), loadPromotions()]);
   updateCounts();
   fillProfile();
   message(appMessage, "");
-  if (recoveryFlow) { authPanel.hidden = false; appPanel.hidden = true; showAuth("password"); }
-  else showApp();
 }
 async function loadCategories() {
   const r = await adminDb.from("categories").select("id,category_id,name,slug,description,sort_order,publication_status").eq("business_id",currentBusinessId).order("sort_order").order("name");
@@ -77,7 +98,7 @@ async function loadListings() {
   if (r.error) throw r.error;
   listings = r.data || [];
   const catName = id => categories.find(c=>c.id===id)?.name || "Uncategorised";
-  $("#listings-list").innerHTML = listings.length ? listings.map(l => `<article class="record"><div><strong>${esc(l.name)}</strong><small>${esc(l.kind)} · ${esc(catName(l.category_id))} · ${l.price == null ? "Price on request" : "PGK " + Number(l.price).toFixed(2)} · ${esc(l.publication_status)}</small></div><div class="record-actions">${l.publication_status !== "archived" ? `<button class="outline" data-archive-listing="${esc(l.id)}" type="button">Archive</button>` : ""}</div></article>`).join("") : '<p class="empty-state">No products or services yet. Add your first listing above.</p>';
+  $("#listings-list").innerHTML = listings.length ? listings.map(l => `<article class="record"><div><strong>${esc(l.name)}</strong><small>${esc(l.kind)} · ${esc(catName(l.category_id))} · ${l.price == null ? "Price on request" : esc(String(l.currency || "PGK").trim()) + " " + Number(l.price).toFixed(2)} · ${esc(l.publication_status)}</small></div><div class="record-actions">${l.publication_status !== "archived" ? `<button class="outline" data-archive-listing="${esc(l.id)}" type="button">Archive</button>` : ""}</div></article>`).join("") : '<p class="empty-state">No products or services yet. Add your first listing above.</p>';
 }
 async function loadPromotions() {
   const r = await adminDb.from("promotions").select("id,title,internal_copy,status,starts_at,ends_at").eq("business_id",currentBusinessId).order("created_at",{ascending:false});
@@ -119,9 +140,20 @@ $("#password-form").addEventListener("submit",async e=>{
   if(currentUser){try{await loadBusiness();}catch(err){message(authMessage,friendlyError(err));}}
   else showAuth("signin");
 });
-$("#signout").addEventListener("click",async()=>{await supabase.auth.signOut();currentUser=null;currentBusiness=null;showSignIn();});
-$("#account-signout").addEventListener("click",async()=>{await supabase.auth.signOut();currentUser=null;currentBusiness=null;showSignIn();});
+async function signOutOwner() {
+  await supabase.auth.signOut();
+  currentUser = null; currentBusiness = null; currentBusinessId = null;
+  ownerBusinesses = []; categories = []; listings = []; promotions = [];
+  $("#business-switch-wrap").hidden = true;
+  showSignIn();
+}
+$("#signout").addEventListener("click", signOutOwner);
+$("#account-signout").addEventListener("click", signOutOwner);
 document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));
+$("#business-switch").addEventListener("change", async e => {
+  try { await loadCurrentBusiness(e.currentTarget.value); }
+  catch (err) { message(appMessage, friendlyError(err)); }
+});
 
 $("#profile-form").addEventListener("submit",async e=>{
   e.preventDefault();const f=e.currentTarget;
@@ -172,15 +204,45 @@ document.addEventListener("click",async e=>{
   if(r){if(r.error){message(appMessage,friendlyError(r.error));return;}await refreshAll();message(appMessage,"Changes saved.",true);}
 });
 
-const inviteFlow = new URLSearchParams(location.search).get("type")==="invite" || location.hash.includes("type=invite");
-if(inviteFlow) recoveryFlow=true;
-supabase.auth.onAuthStateChange((event,session)=>{
-  if(event==="PASSWORD_RECOVERY"){
-    recoveryFlow=true;
-    currentUser=session?.user||null;
-    authPanel.hidden=false;appPanel.hidden=true;
+const hashParams = new URLSearchParams(location.hash.replace(/^#/, ""));
+const flowType = new URLSearchParams(location.search).get("type") || hashParams.get("type");
+const inviteFlow = flowType === "invite";
+const recoveryLink = flowType === "recovery";
+if (inviteFlow || recoveryLink) recoveryFlow = true;
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && inviteFlow)) {
+    recoveryFlow = true;
+    currentUser = session?.user || null;
+    authPanel.hidden = false; appPanel.hidden = true;
     showAuth("password");
-    message(authMessage,"Choose a new password for your account.",true);
+    message(authMessage, "Choose a new password for your account.", true);
   }
-  if(event==="SIGNED_OUT"){currentUser=null;currentBusiness=null;currentBusinessId=null;showSignIn();}
+  if (event === "SIGNED_OUT") {
+    currentUser = null; currentBusiness = null; currentBusinessId = null;
+    ownerBusinesses = []; categories = []; listings = []; promotions = [];
+    $("#business-switch-wrap").hidden = true;
+    showSignIn();
+  }
+});
+
+async function restoreExistingSession() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  const session = data?.session;
+  if (!session?.user) return;
+  currentUser = session.user;
+  if (inviteFlow || recoveryLink || recoveryFlow) {
+    authPanel.hidden = false; appPanel.hidden = true;
+    showAuth("password");
+    message(authMessage, "Choose a new password for your account.", true);
+    return;
+  }
+  await loadBusiness();
+  $("#signed-in-email").textContent = currentUser.email || "";
+  $("#account-email").textContent = currentUser.email || "";
+}
+restoreExistingSession().catch(err => {
+  message(authMessage, friendlyError(err));
+  showSignIn();
 });
