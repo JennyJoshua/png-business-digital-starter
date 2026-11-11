@@ -84,6 +84,18 @@ begin
      or not has_function_privilege('authenticated','admin_api.archive_listing(uuid)','EXECUTE') then
     raise exception 'authenticated role cannot execute owner archive functions';
   end if;
+  if has_function_privilege('anon','app_private.archive_category(uuid)','EXECUTE')
+     or has_function_privilege('anon','app_private.archive_listing(uuid)','EXECUTE')
+     or not has_function_privilege('authenticated','app_private.archive_category(uuid)','EXECUTE')
+     or not has_function_privilege('authenticated','app_private.archive_listing(uuid)','EXECUTE') then
+    raise exception 'private archive function execution grants are incorrect';
+  end if;
+  if not (select prosecdef from pg_proc where oid='app_private.archive_category(uuid)'::regprocedure)
+     or not (select prosecdef from pg_proc where oid='app_private.archive_listing(uuid)'::regprocedure)
+     or (select prosecdef from pg_proc where oid='admin_api.archive_category(uuid)'::regprocedure)
+     or (select prosecdef from pg_proc where oid='admin_api.archive_listing(uuid)'::regprocedure) then
+    raise exception 'archive functions must use private SECURITY DEFINER implementation and invoker wrappers';
+  end if;
 end;
 $$;
 
