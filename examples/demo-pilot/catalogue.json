@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "1.0",
+  "categories": [
+    { "id": "roofing", "name": "Roofing" },
+    { "id": "cement", "name": "Cement & concrete" },
+    { "id": "timber", "name": "Timber" },
+    { "id": "tools", "name": "Tools & hardware" },
+    { "id": "delivery", "name": "Delivery services" }
+  ],
+  "listings": [
+    {
+      "listingId": "kbm-roof-24",
+      "name": "Corrugated roofing iron 2.4m",
+      "kind": "product",
+      "categoryId": "roofing",
+      "price": 75,
+      "priceNote": "sample price per sheet",
+      "description": "Sample listing for a 2.4 metre galvanised roofing sheet. Product specifications and availability are fictional."
+    },
+    {
+      "listingId": "kbm-roof-30",
+      "name": "Corrugated roofing iron 3.0m",
+      "kind": "product",
+      "categoryId": "roofing",
+      "price": 92,
+      "priceNote": "sample price per sheet",
+      "description": "Sample listing for a 3.0 metre galvanised roofing sheet. Product specifications and availability are fictional."
+    },
+    {
+      "listingId": "kbm-cement-40",
+      "name": "General purpose cement 40kg",
+      "kind": "product",
+      "categoryId": "cement",
+      "price": 49,
+      "priceNote": "sample price per bag",
+      "description": "Fictional catalogue item for testing category filters, search and product detail pages."
+    },
+    {
+      "listingId": "kbm-timber-4x2",
+      "name": "Treated timber 100 x 50mm",
+      "kind": "product",
+      "categoryId": "timber",
+      "price": 22.5,
+      "priceNote": "sample price per metre",
+      "description": "Fictional treated framing timber listing with a sample per-metre price."
+    },
+    {
+      "listingId": "kbm-nails-75",
+      "name": "Wire nails 75mm",
+      "kind": "product",
+      "categoryId": "tools",
+      "price": 18,
+      "priceNote": "sample price per kilogram",
+      "description": "Fictional general-purpose nail listing for catalogue and price display testing."
+    },
+    {
+      "listingId": "kbm-hammer-16",
+      "name": "Claw hammer 16oz",
+      "kind": "product",
+      "categoryId": "tools",
+      "price": 32,
+      "priceNote": "sample price each",
+      "description": "Fictional hand-tool listing for testing product details and enquiry links."
+    },
+    {
+      "listingId": "kbm-wheelbarrow",
+      "name": "Builders wheelbarrow",
+      "kind": "product",
+      "categoryId": "tools",
+      "price": 185,
+      "priceNote": "sample price each",
+      "description": "Fictional wheelbarrow listing. Image is generated as a placeholder unless a local image is supplied."
+    },
+    {
+      "listingId": "kbm-site-delivery",
+      "name": "Building-material site delivery",
+      "kind": "service",
+      "categoryId": "delivery",
+      "description": "Fictional delivery service. A real business would confirm delivery zones, vehicle capacity and charges before publishing."
+    }
+  ]
+}
