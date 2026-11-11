@@ -49,6 +49,7 @@ async function loadBusiness() {
   const m = await adminDb.from("business_memberships")
     .select("business_id,role,status")
     .eq("user_id", currentUser.id)
+    .eq("role", "owner")
     .eq("status", "active");
   if (m.error) throw m.error;
   if (!m.data?.length) throw new Error("Your account is signed in, but it has no active business-owner access. Ask the administrator to complete your business invitation.");
@@ -81,10 +82,20 @@ async function loadCurrentBusiness(id) {
   $("#welcome-title").textContent = currentBusiness.name;
   $("#business-status").textContent = "Publication status: " + currentBusiness.publication_status + ". Changes made here are stored in your private business record.";
   message(appMessage, "Loading business data…");
-  await Promise.all([loadCategories(), loadListings(), loadPromotions()]);
-  updateCounts();
-  fillProfile();
-  message(appMessage, "");
+  const selector = $("#business-switch");
+  selector.disabled = true;
+  appPanel.inert = true;
+  appPanel.setAttribute("aria-busy", "true");
+  try {
+    await Promise.all([loadCategories(), loadListings(), loadPromotions()]);
+    updateCounts();
+    fillProfile();
+    message(appMessage, "");
+  } finally {
+    selector.disabled = false;
+    appPanel.inert = false;
+    appPanel.removeAttribute("aria-busy");
+  }
 }
 async function loadCategories() {
   const r = await adminDb.from("categories").select("id,category_id,name,slug,description,sort_order,publication_status").eq("business_id",currentBusinessId).order("sort_order").order("name");
@@ -126,7 +137,7 @@ $("#forgot-link").addEventListener("click",()=>{showAuth("forgot");message(authM
 $(".cancel").addEventListener("click",()=>showAuth("signin"));
 $("#forgot-form").addEventListener("submit",async e=>{
   e.preventDefault();message(authMessage,"Sending recovery email…");
-  const r=await supabase.auth.resetPasswordForEmail(value(e.currentTarget,"email"),{redirectTo:window.location.href});
+  const r=await supabase.auth.resetPasswordForEmail(value(e.currentTarget,"email"),{redirectTo:window.location.origin + window.location.pathname});
   message(authMessage,r.error?friendlyError(r.error):"If an account exists for that email, a recovery link has been sent. Check your inbox.",!r.error);
 });
 $("#password-form").addEventListener("submit",async e=>{
