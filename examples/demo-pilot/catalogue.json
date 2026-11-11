@@ -14,7 +14,7 @@
       "kind": "product",
       "categoryId": "roofing",
       "price": 75,
-      "priceNote": "sample price per sheet",
+      "priceNote": "per sheet",
       "description": "Sample listing for a 2.4 metre galvanised roofing sheet. Product specifications and availability are fictional."
     },
     {
@@ -23,7 +23,7 @@
       "kind": "product",
       "categoryId": "roofing",
       "price": 92,
-      "priceNote": "sample price per sheet",
+      "priceNote": "per sheet",
       "description": "Sample listing for a 3.0 metre galvanised roofing sheet. Product specifications and availability are fictional."
     },
     {
@@ -32,7 +32,7 @@
       "kind": "product",
       "categoryId": "cement",
       "price": 49,
-      "priceNote": "sample price per bag",
+      "priceNote": "per bag",
       "description": "Fictional catalogue item for testing category filters, search and product detail pages."
     },
     {
@@ -41,7 +41,7 @@
       "kind": "product",
       "categoryId": "timber",
       "price": 22.5,
-      "priceNote": "sample price per metre",
+      "priceNote": "per metre",
       "description": "Fictional treated framing timber listing with a sample per-metre price."
     },
     {
@@ -50,7 +50,7 @@
       "kind": "product",
       "categoryId": "tools",
       "price": 18,
-      "priceNote": "sample price per kilogram",
+      "priceNote": "per kilogram",
       "description": "Fictional general-purpose nail listing for catalogue and price display testing."
     },
     {
@@ -59,7 +59,7 @@
       "kind": "product",
       "categoryId": "tools",
       "price": 32,
-      "priceNote": "sample price each",
+      "priceNote": "each",
       "description": "Fictional hand-tool listing for testing product details and enquiry links."
     },
     {
@@ -68,7 +68,7 @@
       "kind": "product",
       "categoryId": "tools",
       "price": 185,
-      "priceNote": "sample price each",
+      "priceNote": "each",
       "description": "Fictional wheelbarrow listing. Image is generated as a placeholder unless a local image is supplied."
     },
     {
