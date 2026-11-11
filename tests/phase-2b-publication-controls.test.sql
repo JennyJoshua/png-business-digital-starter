@@ -216,11 +216,28 @@ begin
 end;
 $$;
 
+-- Simulate platform-admin approval, then prove anonymous reads can see only published rows.
+update app_private.businesses set publication_status='published' where business_id='test-business-a';
+update app_private.categories set publication_status='published'
+where category_id='seed-category' and business_id=(select id from app_private.businesses where business_id='test-business-a');
+update app_private.listings set publication_status='published'
+where listing_id='seed-listing' and business_id=(select id from app_private.businesses where business_id='test-business-a');
+
 -- Public child-record RLS policies must evaluate without leaking private IDs.
 set role anon;
-select count(*) from public.storefront_businesses;
-select count(*) from public.storefront_categories;
-select count(*) from public.storefront_listings;
+do $
+begin
+  if (select count(*) from public.storefront_businesses) <> 1 then
+    raise exception 'anonymous business storefront visibility is incorrect';
+  end if;
+  if (select count(*) from public.storefront_categories) <> 1 then
+    raise exception 'anonymous category storefront visibility is incorrect';
+  end if;
+  if (select count(*) from public.storefront_listings) <> 1 then
+    raise exception 'anonymous listing storefront visibility is incorrect';
+  end if;
+end;
+$;
 reset role;
 
-\echo 'PASS: platform-only publication controls, tenant-scoped owner archiving, and anonymous storefront reads'
+\echo 'PASS: platform-only publication controls, tenant-scoped owner archiving, and anonymous storefront visibility'
