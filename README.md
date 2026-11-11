@@ -1,6 +1,6 @@
 # PNG Business Digital Starter
 
-A reusable, mobile-first storefront template for PNG businesses. One master template; each customer gets their **own independent repository and deployment**. Phase 2A complete; Phase 2B backend foundation in design, with the product direction recorded in [the owner admin and public search specification](docs/owner-admin-and-search-spec.md).
+A reusable, mobile-first storefront template for PNG businesses. One master template; each customer gets their **own independent repository and deployment**. Phase 2A public storefront work is merged. Phase 2B owner-admin foundation is under review on a feature branch and is not yet merged or enabled for live businesses.
 
 ## What it does
 
@@ -10,7 +10,7 @@ Reads two JSON files (`business.json`, `catalogue.json`) and generates a fast st
 
 ## Quick start (Node.js 18+, no packages to install)
 ```
-npm run build:examples   # builds the 3 demo businesses into dist-examples/
+npm run build:examples   # builds all demonstration storefronts into dist-examples/
 npm run build            # builds business/ into dist/
 npm run serve            # preview dist/ at http://localhost:8080
 npm run validate         # check business/ without building
@@ -38,6 +38,8 @@ Everything shipped (`examples/*` and the starter in `business/`) has `"demo": tr
 - `business/` the active business for this copy (edit this)
 - `examples/` hardware supplier, general retail, service provider (demo data)
 - `docs/` documentation; `tests/` automated tests and browser QA script
+- `admin/` private owner-admin app, copied into static builds under `/admin/`
+- `supabase/` version-controlled database migrations
 
 ## Not included in the current implementation
 
