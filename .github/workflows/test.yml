@@ -63,3 +63,14 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: pbds_test
         run: psql -v ON_ERROR_STOP=1 -f tests/phase-2b-publication-controls.test.sql
+
+      - name: Test security remediation on a separate disposable PostgreSQL 17 database
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: pbds_test
+        run: |
+          createdb pbds_security_test
+          psql -d pbds_security_test -v ON_ERROR_STOP=1 -f tests/phase-2b-security-remediation.test.sql
