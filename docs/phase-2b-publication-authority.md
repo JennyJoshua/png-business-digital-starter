@@ -27,7 +27,7 @@ The migration `20261111120000_phase_2b_platform_publication_controls.sql`:
 - Adds `app_private.archive_category(uuid)` and `app_private.archive_listing(uuid)` SECURITY DEFINER implementations in the unexposed schema. Each independently checks `auth.uid()` and the caller's active owner membership for the exact record before setting status to `archived`. Exposed `admin_api` RPCs are SECURITY INVOKER wrappers only.
 - Grants execution of the private implementations and the invoker wrappers to authenticated users only; anonymous callers cannot execute them. The privileged implementation remains outside the exposed Data API schema and does not grant publication authority.
 
-The owner-admin UI no longer sends a publication status on insert and calls the dedicated archive functions. There is no owner-facing publish button.
+The owner-admin UI no longer sends a publication status on insert and calls the dedicated archive functions. There is no owner-facing publish button. The migration also grants the internal business UUID column to `anon` solely so existing public category/listing RLS predicates can validate the parent business; `app_private` remains unexposed and public storefront views do not return that UUID.
 
 ## Platform publication workflow
 
@@ -36,6 +36,7 @@ A platform-admin approval/review interface is not part of the current owner-admi
 ## Verification and rollout
 
 - Automated source-level regression assertions cover the migration grants, archive functions and owner UI calls.
+- Disposable PostgreSQL 17 integration tests exercise draft creation/editing, denied publication, owner-only archive, cross-tenant denial, and anonymous storefront reads.
 - The migration is committed to the Phase 2B branch but has **not** been applied to the hosted Supabase database.
 - Hosted migration application remains an explicit approval gate.
 - Before rollout, test on a disposable PostgreSQL database that owners can create/edit drafts and archive only their own records, cannot insert/update publication status, and cannot archive another tenant's records.
