@@ -2,7 +2,7 @@ import { test } from 'node:test'; import assert from 'node:assert/strict';
 import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'; import { execFileSync } from 'node:child_process';
 import { build } from '../scripts/build.mjs'; import { validate } from '../src/lib.mjs';
 
-const EX = ['hardware-supplier', 'general-retail', 'service-provider'];
+const EX = ['hardware-supplier', 'general-retail', 'service-provider', 'demo-pilot'];
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pbds-'));
 const rd = (d, f) => fs.readFileSync(path.join(d, f), 'utf8');
 const cfg = (e) => JSON.parse(rd(`examples/${e}`, 'business.json'));
@@ -10,7 +10,7 @@ const cat = (e) => JSON.parse(rd(`examples/${e}`, 'catalogue.json'));
 const out = Object.fromEntries(EX.map((e) => [e, path.join(tmp, e)]));
 for (const e of EX) build(`examples/${e}`, out[e]);
 
-test('1. all three example businesses build', () => { for (const e of EX) { assert.ok(fs.existsSync(path.join(out[e], 'index.html'))); assert.ok(fs.existsSync(path.join(out[e], 'search.html'))); } });
+test('1. all four example businesses build', () => { for (const e of EX) { assert.ok(fs.existsSync(path.join(out[e], 'index.html'))); assert.ok(fs.existsSync(path.join(out[e], 'search.html'))); } });
 
 test('4. each build shows its own name, colour, content, and none of the others', () => {
   for (const e of EX) {
