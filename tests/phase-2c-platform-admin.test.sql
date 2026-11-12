@@ -64,6 +64,9 @@ select set_config('test.phase2c.listing_id',
   (select id::text from app_private.listings
    where business_id=(select id from app_private.businesses where business_id='test-business-b')
      and listing_id='seed-listing'),false);
+update app_private.listings
+set category_id=current_setting('test.phase2c.category_id')::uuid
+where id=current_setting('test.phase2c.listing_id')::uuid;
 
 -- Allowlisted platform administrator can review and publish across tenants.
 set role authenticated;
@@ -85,6 +88,11 @@ begin
   listing_id_value := current_setting('test.phase2c.listing_id')::uuid;
 
   perform admin_api.set_publication_status('business',business_id_value,'published','Business details reviewed');
+  begin
+    perform admin_api.set_publication_status('listing',listing_id_value,'published','Premature publication attempt');
+    raise exception 'listing was published while its category remained draft';
+  exception when check_violation then null;
+  end;
   perform admin_api.set_publication_status('category',category_id_value,'published','Category reviewed');
   perform admin_api.set_publication_status('listing',listing_id_value,'published','Listing reviewed');
 
