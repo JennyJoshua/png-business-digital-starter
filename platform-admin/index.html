@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#123c68">
+  <title>Platform Admin · Business Digital Starter</title>
+  <link rel="stylesheet" href="./platform-admin.css">
+</head>
+<body>
+  <main class="shell">
+    <section id="auth-panel" class="auth-card" aria-labelledby="auth-title">
+      <p class="eyebrow">BUSINESS DIGITAL STARTER</p>
+      <h1 id="auth-title">Platform administrator</h1>
+      <p class="muted">Private publication review. Access is restricted to accounts explicitly allowlisted by the platform owner.</p>
+      <form id="signin-form">
+        <label for="email">Email address</label>
+        <input id="email" type="email" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+        <button class="primary" type="submit">Sign in</button>
+      </form>
+      <p id="auth-message" class="message" role="status" aria-live="polite"></p>
+      <p class="small muted">There is no public administrator registration or invitation flow.</p>
+    </section>
+
+    <section id="app-panel" hidden>
+      <header class="topbar">
+        <div><p class="eyebrow">CONTROL CENTRE</p><h1>Publication review</h1><p class="muted small">Only publish content after checking its accuracy and suitability.</p></div>
+        <div class="session"><span id="signed-in-email" class="small muted"></span><button id="signout" class="outline" type="button">Sign out</button></div>
+      </header>
+      <div class="toolbar">
+        <div><strong id="queue-count">Review queue</strong><p class="small muted">Business, category, product and service publication status</p></div>
+        <button id="refresh" class="outline" type="button">Refresh</button>
+      </div>
+      <p id="app-message" class="message" role="status" aria-live="polite"></p>
+      <section id="queue" class="queue" aria-live="polite"></section>
+    </section>
+  </main>
+  <script type="module" src="./platform-admin.js"></script>
+</body>
+</html>
