@@ -26,7 +26,7 @@ Real-browser checks (optional, needs Python Playwright): `python3 tests/browser/
 - The admin interface is built under `/admin/`, uses a Supabase publishable key, and relies on database grants and RLS for authorization. Business owners can prepare drafts but only platform administrators may publish businesses, categories, products or services.
 - Phase 2C platform-admin code is being tested on a feature branch. The new migration adds a trusted administrator allowlist, review queue, publish/unpublish RPCs and audit events; no administrator is seeded automatically.
 - Before any real owner onboarding: separately approve/apply pending migrations in order, configure/verify Auth and Data API settings, test invitations/recovery, browser CRUD and tenant isolation, and provision a platform-admin account through a controlled database operation.
-- Owner/platform-admin audit coverage is being added in Phase 2C; Storage uploads, public storefront synchronization and production infrastructure remain outstanding.
+- Platform publication decisions are recorded in the Phase 2C audit log; owner-action audit coverage, Storage uploads, public storefront synchronization and production infrastructure remain outstanding.
 - Do not use the Free development project for live customer data or production. See the Phase 2B implementation and readiness documents.
 
 ## Demonstration data is clearly marked
