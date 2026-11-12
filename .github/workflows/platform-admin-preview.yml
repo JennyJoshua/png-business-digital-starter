@@ -20,11 +20,9 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 20
-          cache: npm
 
       - name: Install dependencies and build demo storefront
         run: |
-          npm ci
           npm run build:examples
           test -f dist-examples/hardware-supplier/platform-admin/index.html
           test -f dist-examples/hardware-supplier/platform-admin/platform-admin.css
