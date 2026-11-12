@@ -19,9 +19,9 @@ This is not a go-live approval or an independent third-party penetration test. R
 | PR | Scope | Current state | Latest CI |
 |---|---|---|---|
 | [#8 — Private owner-admin foundation](https://github.com/JennyJoshua/png-business-digital-starter/pull/8) | Owner admin app, platform-only publication controls, public RLS support fix, tests and docs | Merged 12 Nov 2026; merge commit `4bfd9e5287a44b1ab6dd3349748df407b5f79dc2` | [Pages deployment run #11 — success](https://github.com/JennyJoshua/png-business-digital-starter/actions/runs/43145840341) |
-| [#9 — Phase 2B security remediation](https://github.com/JennyJoshua/png-business-digital-starter/pull/9) | One-active-owner index, read-only public views, default-privilege hardening, security docs and SQL tests | Draft; open; unmerged; targets `main`; 23 commits ahead, 0 behind; 7 changed files | Latest test workflow for head `8470a07c3e5dd8392b4422dd45d9f272a82adc10` — success |
+| [#9 — Phase 2B security remediation](https://github.com/JennyJoshua/png-business-digital-starter/pull/9) | One-active-owner index, read-only public views, default-privilege hardening, security docs and SQL tests | Draft; open; unmerged; targets `main`; 24 commits; 7 changed files | [Runs #171 and #172 — success](https://github.com/JennyJoshua/png-business-digital-starter/actions/runs/43146916421) |
 
-PR #8 is merged. PR #9 has been retargeted to `main`; its resulting diff contains only seven security-remediation workflow, audit-documentation, migration and SQL-test files. GitHub reports the PR as mergeable and clean. The latest test workflow associated with its head commit completed successfully.
+PR #8 is merged. PR #9 has been retargeted to `main`; its resulting diff contains only seven security-remediation workflow, audit-documentation, migration and SQL-test files. Its latest head is `623069b1fd7fb4cb2ba5b94dbe8a07fea50df843`. GitHub reports the PR as mergeable and clean. Both workflows triggered by the latest head completed successfully, including the full PostgreSQL 17 publication-control and security-remediation test steps.
 
 **Review-record note:** GitHub currently shows no submitted formal PR reviews or inline review threads on either PR. The present assessment is a repository/code inspection plus automated CI evidence; it should not be described as an independent external review.
 
@@ -119,4 +119,4 @@ The public GitHub Pages demo storefront and `/admin/` route are deployed. The Pa
 4. Complete invitation/recovery and authenticated browser/API tests before creating any real owner membership or business data.
 5. Build and test the platform-admin publication workflow and remaining go-live capabilities before onboarding real businesses.
 
-**Current recommendation:** PR #8's owner-admin foundation is deployed for inspection. PR #9's isolated security changes are ready for final code review, but not for production use. Do not merge PR #9, apply hosted migrations or onboard owners automatically.
+**Current recommendation:** PR #8's owner-admin foundation is deployed. PR #9's isolated security changes passed the current repository review and CI suite and are ready for the owner's merge decision. This is not production approval. Do not merge PR #9, apply hosted migrations or onboard owners automatically.
