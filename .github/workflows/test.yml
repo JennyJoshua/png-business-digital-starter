@@ -10,6 +10,7 @@ on:
     branches:
       - main
       - "phase-2b/**"
+      - "phase-2c/**"
 
 permissions:
   contents: read
