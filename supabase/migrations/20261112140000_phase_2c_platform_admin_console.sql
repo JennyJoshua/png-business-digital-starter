@@ -121,8 +121,8 @@ begin
   end if;
 
   if p_entity_type = 'business' then
-    if p_new_status not in ('published','suspended') then
-      raise exception 'Business status must be published or suspended' using errcode = '22023';
+    if p_new_status not in ('published','draft','suspended') then
+      raise exception 'Business status must be published, draft or suspended' using errcode = '22023';
     end if;
     select publication_status into old_value from app_private.businesses where id=p_entity_id for update;
     if not found then raise exception 'Business not found' using errcode = 'P0002'; end if;
