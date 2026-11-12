@@ -213,3 +213,42 @@ test('public storefront: no Promotions page; search suggestions and full results
     assert.ok(results.includes(cfg(e).name.replace(/&/g, '&amp;')));
   }
 });
+
+
+test('owner admin: private app is built, restores sessions, supports business switching and never ships privileged credentials', () => {
+  for (const e of EX) {
+    const adminDir = path.join(out[e], 'admin');
+    assert.ok(fs.existsSync(path.join(adminDir, 'index.html')));
+    assert.ok(fs.existsSync(path.join(adminDir, 'admin.js')));
+    assert.ok(fs.existsSync(path.join(adminDir, 'admin.css')));
+    const page = rd(adminDir, 'index.html'), app = rd(adminDir, 'admin.js');
+    assert.ok(page.includes('noindex,nofollow'));
+    assert.ok(page.includes('Owner sign in'));
+    assert.ok(page.includes('business-switch'));
+    assert.ok(!/signUp\s*\(/i.test(app), 'owner app must not expose public registration');
+    assert.ok(app.includes('sb_publishable_'));
+    assert.ok(!/service_role|sb_secret_|SUPABASE_SERVICE_ROLE/i.test(app), 'privileged Supabase credentials must never be shipped to browsers');
+    assert.ok(app.includes('business_memberships') && app.includes("schema('admin_api')"));
+    assert.ok(app.includes('getSession()'), 'stored sessions must be restored after page reload');
+    assert.ok(app.includes('loadCurrentBusiness'), 'owners must be able to switch between their authorized businesses');
+    assert.ok(app.includes('l.currency'), 'listing display must use the stored currency');
+    assert.ok(app.includes('unhandledrejection'), 'unexpected network failures must be shown as user-facing errors');
+    assert.ok(app.includes('redirectTo:window.location.origin + window.location.pathname'), 'recovery callbacks must use a stable admin URL');
+  }
+});
+
+
+test('Phase 2B publication authority: owners cannot publish businesses, categories, or listings', () => {
+  const migration = rd('.', 'supabase/migrations/20261111120000_phase_2b_platform_publication_controls.sql');
+  const admin = rd('.', 'admin/admin.js');
+  assert.match(migration, /revoke update \(publication_status\) on app_private\.businesses from authenticated/i);
+  assert.match(migration, /revoke insert \(publication_status\), update \(publication_status\)[\s\S]*?on app_private\.categories from authenticated/i);
+  assert.match(migration, /revoke insert \(publication_status\), update \(publication_status\)[\s\S]*?on app_private\.listings from authenticated/i);
+  assert.match(migration, /create or replace function admin_api\.archive_category/i);
+  assert.match(migration, /create or replace function admin_api\.archive_listing/i);
+  assert.match(migration, /grant execute on function admin_api\.archive_category\(uuid\) to authenticated/i);
+  assert.match(migration, /grant execute on function admin_api\.archive_listing\(uuid\) to authenticated/i);
+  assert.match(admin, /rpc\("archive_category"/);
+  assert.match(admin, /rpc\("archive_listing"/);
+  assert.doesNotMatch(admin, /publication_status:"draft"/);
+});
