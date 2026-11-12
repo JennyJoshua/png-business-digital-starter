@@ -15,20 +15,21 @@
 | Future API integration | Stable IDs, versioned export format, documented interface |
 | Simple maintenance | No runtime dependencies; builds quickly |
 
-**Current trade-offs:** catalogue edits require a rebuild and redeploy; there is no owner admin; search runs in the browser over the generated catalogue (appropriate for small-to-medium catalogues, not tens of thousands). Phase 2A is merged into `main`: public Promotions output is removed; homepage logo fallback, live listing/category suggestions and a dedicated results page with category filtering, sorting and clear-search are implemented.
+**Current trade-offs:** public storefront content still comes from the static JSON build and catalogue changes require a rebuild/redeploy; search runs in the browser over the generated catalogue (appropriate for small-to-medium catalogues, not tens of thousands). A Supabase-backed owner-admin foundation is merged; the separate platform-admin publication console is in Phase 2C review. Phase 2A is merged into `main`: public Promotions output is removed; homepage logo fallback, live listing/category suggestions and a dedicated results page with category filtering, sorting and clear-search are implemented.
 
-## Approved next product architecture: public storefront + private owner admin
+## Product architecture: public storefront + private owner and platform administration
 
 The product will provide two distinct user experiences while sharing one business identity, catalogue, stable IDs and design system:
 
 - **Public storefront:** customer-facing and browseable without customer login. It shows business information, logo/placeholder, products/services, search, category navigation, listing details and contact/social links. It must not expose a dedicated Promotions section or owner-management controls.
-- **Owner admin:** a separate, private management interface for the authenticated business owner. It manages business profile and branding, logo, catalogue/listings, categories, promotions, contact/social details and data export.
+- **Owner admin:** `/admin/`, a private management interface for authenticated business owners. It manages business profile and branding, catalogue/listings, categories and private promotions. Database grants/RLS prevent owners from publishing.
+- **Platform admin:** `/platform-admin/`, a separate administrator-only interface for reviewing and publishing businesses, categories and listings. Phase 2C adds a database allowlist and protected RPCs; the allowlist is provisioned only through trusted database administration, never from the browser.
 - **Shared data:** both interfaces use the same underlying business and listing records. The admin edits data; the public storefront renders only fields and content intended for public display.
 - **Deployment shape:** separate interfaces/routes and access boundaries in the same product/codebase are preferred initially. They do not need separate codebases. Each customer still receives an independent business deployment/instance as the service model requires.
 
 ### Security boundary (mandatory)
 
-The owner admin is private by authentication and server-side authorization, not merely by hiding navigation or using an obscure URL. Owner-only operations and writes must be enforced by a trusted backend. Never embed admin credentials or privileged secrets in generated public files. The current static-only architecture cannot safely implement authenticated administration or persistent owner edits by itself; introducing an appropriate backend/authentication layer is a prerequisite. Public storefront pages and exports must never leak private admin data.
+Both admin interfaces are static front ends, not security boundaries. Supabase Auth supplies the user JWT; database grants, RLS and narrowly scoped SECURITY DEFINER RPCs enforce permissions. The platform-admin identity is checked against the app_private.platform_admins allowlist, not editable user metadata. Privileged secrets never appear in generated public files. The public storefront and export remain restricted to explicit whitelisted fields. Phase 2C code and migrations remain on a feature branch until reviewed; hosted migrations are not applied.
 
 ### Promotions policy
 
@@ -53,9 +54,9 @@ The merged Phase 2A implementation provides client-side live listing/category su
 
 Each deployment contains only its own `business/` folder. The build rejects asset paths that point outside that folder. The export file is generated from the same config and contains only whitelisted fields. Stable business/listing IDs and a versioned export format remain the foundation for future marketplace onboarding, with owner consent and verified schema mapping required.
 
-## Security measures actually implemented in the current static version
+## Security measures implemented across the static frontend and Supabase backend
 
-Business-supplied text is HTML-escaped; URLs must be http(s); colours must be `#RRGGBB`; IDs must be lowercase slugs; phone numbers are validated. Invalid configs fail the build with clear messages. There is currently no authentication, secure admin area or login.
+Business-supplied text is HTML-escaped; URLs must be http(s); colours must be `#RRGGBB`; IDs must be lowercase slugs; phone numbers are validated. Invalid configs fail the build with clear messages. Supabase Auth and database authorization support the merged owner-admin foundation. Phase 2C adds a separate platform-admin allowlist and publication RPCs on a feature branch. Hosted migrations, admin allowlisting and live owner onboarding remain approval-gated.
 
 ## Demonstration-only items
 
@@ -72,3 +73,12 @@ Public storefront improvements are merged into `main`: no public Promotions page
 ## Version 1.1.0
 
 Validation covers fields with `file › field` messages, brand-colour contrast, safe image paths and placeholder detection for non-demo businesses. Demo data is visibly marked. Exports use a field whitelist. Images have runtime fallbacks. Architecture and data model remain unchanged.
+
+
+## Phase 2C — platform-admin publication workflow (feature branch)
+
+The Phase 2C implementation adds a separate mobile-responsive `/platform-admin/` route. It uses only the Supabase publishable key and the signed-in user's JWT. A private database allowlist authorizes platform administrators; no public registration, owner metadata or browser-controlled role assignment is used.
+
+The protected review queue returns businesses, categories and product/service listings. Publish/unpublish decisions run through narrowly scoped database functions and create append-only publication audit events with actor, target, prior/new status, reason and timestamp. A category/listing can be published only after its parent business is published. Archived categories/listings cannot be restored through this console. Suspended businesses require a separate reinstatement review.
+
+**Important rollout boundary:** the Phase 2C migration is a versioned file only. It has not been applied to hosted Supabase, no administrator has been allowlisted, and no live publication has been performed. CI uses disposable PostgreSQL 17 fixtures.
