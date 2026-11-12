@@ -34,7 +34,7 @@ function label(item) {
 }
 function availableAction(item) {
   if (item.status === "draft") return { next: "published", text: "Publish" };
-  if (item.status === "published") return { next: item.entity_type === "business" ? "suspended" : "draft", text: "Unpublish" };
+  if (item.status === "published") return { next: "draft", text: "Unpublish" };
   return null;
 }
 function renderQueue() {
