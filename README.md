@@ -1,12 +1,12 @@
 # PNG Business Digital Starter
 
-A reusable, mobile-first storefront template for PNG businesses. One master template; each customer gets their **own independent repository and deployment**. Phase 2A public storefront work is merged. Phase 2B owner-admin foundation is under review on a feature branch and is not yet merged or enabled for live businesses.
+A reusable, mobile-first storefront template for PNG businesses. One master template; each customer gets their **own independent repository and deployment**. Phase 2A is complete. Phase 2B owner-admin and security foundations are merged. Phase 2C platform-admin publication controls are under review on a feature branch; hosted Supabase rollout remains approval-gated.
 
 ## What it does
 
 Reads two JSON files (`business.json`, `catalogue.json`) and generates a fast static website: homepage, about, live search suggestions, a dedicated searchable results page, category filters and sorting, one page per product or service, contact (call, WhatsApp, email), social links and share buttons. The public build does not generate a Promotions page or expose Promotions navigation. Branding (name, logo, colours, cover image) comes entirely from configuration. Invalid configuration stops the build with an error that names the file and field.
 
-**Approved product direction:** separate the public storefront and private owner-admin interfaces while sharing canonical business and catalogue data. Phase 2A is merged into `main`: public Promotions output was removed, homepage logo fallback and live suggestions were added, and the dedicated results page supports category filtering, sorting and clear-search. Phase 2B has an existing Supabase development schema, RLS foundation, versioned migrations and a first private admin interface on `phase-2b/owner-admin-v1-review`. This is not yet merged or ready for real owner onboarding.
+**Approved product direction:** separate the public storefront and private owner-admin interfaces while sharing canonical business and catalogue data. Phase 2A is merged into `main`: public Promotions output was removed, homepage logo fallback and live suggestions were added, and the dedicated results page supports category filtering, sorting and clear-search. Phase 2B owner-admin code, RLS foundation and security remediation are merged. Phase 2C adds a separate `/platform-admin/` interface and database allowlist/RPC controls on `phase-2c/platform-admin-console`; this is not yet merged or enabled on hosted Supabase.
 
 ## Quick start (Node.js 18+, no packages to install)
 ```
@@ -21,11 +21,12 @@ Real-browser checks (optional, needs Python Playwright): `python3 tests/browser/
 ## Phase 2B owner-admin development
 
 - Development backend: the existing `PNG Business Digital Starter Dev` Supabase project, separate from PNG Materials Marketplace.
-- One shared multi-tenant backend; invited owner accounts only; one active owner per business is enforced by the pending security-remediation migration.
-- SQL migrations and owner-admin source are under review in draft PR #8; one-active-owner and public-view privilege hardening are in stacked draft PR #9.
+- One shared multi-tenant backend; invited owner accounts only; one active owner per business is enforced by the merged security-remediation migration.
+- PR #8 (owner-admin foundation) and PR #9 (security remediation) are merged into `main`.
 - The admin interface is built under `/admin/`, uses a Supabase publishable key, and relies on database grants and RLS for authorization. Business owners can prepare drafts but only platform administrators may publish businesses, categories, products or services.
-- Before any real owner onboarding: finish PostgreSQL 17 CI tests, approve/apply pending migrations, verify Data API/Auth settings, test invitation and recovery email delivery, browser CRUD and tenant isolation, and build the platform-admin publication workflow.
-- Storage uploads, audit events, public storefront synchronization and production infrastructure are still outstanding.
+- Phase 2C platform-admin code is being tested on a feature branch. The new migration adds a trusted administrator allowlist, review queue, publish/unpublish RPCs and audit events; no administrator is seeded automatically.
+- Before any real owner onboarding: separately approve/apply pending migrations in order, configure/verify Auth and Data API settings, test invitations/recovery, browser CRUD and tenant isolation, and provision a platform-admin account through a controlled database operation.
+- Owner/platform-admin audit coverage is being added in Phase 2C; Storage uploads, public storefront synchronization and production infrastructure remain outstanding.
 - Do not use the Free development project for live customer data or production. See the Phase 2B implementation and readiness documents.
 
 ## Demonstration data is clearly marked
@@ -39,8 +40,9 @@ Everything shipped (`examples/*` and the starter in `business/`) has `"demo": tr
 - `examples/` hardware supplier, general retail, service provider (demo data)
 - `docs/` documentation; `tests/` automated tests and browser QA script
 - `admin/` private owner-admin app, copied into static builds under `/admin/`
+- `platform-admin/` separate platform publication console, copied into static builds under `/platform-admin/`
 - `supabase/` version-controlled database migrations
 
 ## Not included in the current implementation
 
-Payments, carts, customer login, image uploads, public storefront synchronization, direct social publishing, live marketplace sync, marketplace registration or approval. The initial owner-admin foundation is not yet merged or enabled for real business operations; it requires verified Auth, API exposure, RLS, invitation and production gates. Simply hiding a public link or route is not security. See `docs/architecture.md`, `docs/outstanding-issues.md` and `CHANGELOG.md`.
+Payments, carts, customer login, image uploads, public storefront synchronization, direct social publishing, live marketplace sync, marketplace registration or approval. The merged owner-admin foundation and Phase 2C draft publication console are not yet approved for live business operations; hosted migrations, platform-admin allowlisting, verified Auth/API settings, invitation testing and production gates remain. Simply hiding a public link or route is not security. See `docs/architecture.md`, `docs/outstanding-issues.md` and `CHANGELOG.md`.
