@@ -52,7 +52,10 @@ jobs:
         run: npm run validate
 
       - name: Build all demonstration storefronts
-        run: npm run build:examples
+        run: |
+          npm run build:examples
+          test -f dist-examples/hardware-supplier/platform-admin/index.html
+          test -f dist-examples/hardware-supplier/platform-admin/platform-admin.js
 
       - name: Install PostgreSQL client
         run: |
