@@ -109,6 +109,7 @@ declare
   old_value text;
   action_value text;
   parent_status text;
+  category_status text;
 begin
   if actor is null or not app_private.is_platform_admin() then
     raise exception 'Platform administrator access required' using errcode = '42501';
@@ -147,13 +148,19 @@ begin
     if p_new_status not in ('published','draft') then
       raise exception 'Listing status must be published or draft' using errcode = '22023';
     end if;
-    select l.publication_status,b.publication_status into old_value,parent_status
-      from app_private.listings l join app_private.businesses b on b.id=l.business_id
+    select l.publication_status,b.publication_status,c.publication_status
+      into old_value,parent_status,category_status
+      from app_private.listings l
+      join app_private.businesses b on b.id=l.business_id
+      left join app_private.categories c on c.id=l.category_id
       where l.id=p_entity_id for update of l;
     if not found then raise exception 'Listing not found' using errcode = 'P0002'; end if;
     if old_value = 'archived' then raise exception 'Archived listings cannot be restored here' using errcode = '42501'; end if;
     if p_new_status='published' and parent_status <> 'published' then
       raise exception 'Publish the parent business before its listing' using errcode = '23514';
+    end if;
+    if p_new_status='published' and category_status is not null and category_status <> 'published' then
+      raise exception 'Publish the listing category before its listing' using errcode = '23514';
     end if;
     update app_private.listings set publication_status=p_new_status where id=p_entity_id;
   end if;
