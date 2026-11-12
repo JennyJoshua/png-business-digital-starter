@@ -2,7 +2,7 @@
 
 **Review date:** 12 November 2026  
 **Repository:** `JennyJoshua/png-business-digital-starter`  
-**Review status:** Repository-level code inspection and disposable PostgreSQL 17 integration tests completed. Both PRs remain draft, open and unmerged. Hosted rollout remains approval-gated.
+**Review status:** PR #8 has been merged and its GitHub Pages deployment workflow completed successfully. PR #9 remains a draft, open and unmerged. Hosted database rollout remains approval-gated.
 
 ## Executive result
 
@@ -18,10 +18,10 @@ This is not a go-live approval or an independent third-party penetration test. R
 
 | PR | Scope | Current state | Latest CI |
 |---|---|---|---|
-| [#8 — Private owner-admin foundation](https://github.com/JennyJoshua/png-business-digital-starter/pull/8) | Owner admin app, platform-only publication controls, public RLS support fix, tests and docs | Draft; open; unmerged; 51 commits ahead of `main`, 0 behind | [Run #165 — success](https://github.com/JennyJoshua/png-business-digital-starter/actions/runs/43014161097) |
-| [#9 — Phase 2B security remediation](https://github.com/JennyJoshua/png-business-digital-starter/pull/9) | One-active-owner index, read-only public views, default-privilege hardening, security docs and SQL tests | Draft; open; unmerged; stacked on PR #8; 22 commits ahead of PR #8, 0 behind | [Run #167 — success](https://github.com/JennyJoshua/png-business-digital-starter/actions/runs/43014230571) |
+| [#8 — Private owner-admin foundation](https://github.com/JennyJoshua/png-business-digital-starter/pull/8) | Owner admin app, platform-only publication controls, public RLS support fix, tests and docs | Merged 12 Nov 2026; merge commit `4bfd9e5287a44b1ab6dd3349748df407b5f79dc2` | [Pages deployment run #11 — success](https://github.com/JennyJoshua/png-business-digital-starter/actions/runs/43145840341) |
+| [#9 — Phase 2B security remediation](https://github.com/JennyJoshua/png-business-digital-starter/pull/9) | One-active-owner index, read-only public views, default-privilege hardening, security docs and SQL tests | Draft; open; unmerged; targets `main`; 23 commits ahead, 0 behind; 7 changed files | Latest test workflow for head `8470a07c3e5dd8392b4422dd45d9f272a82adc10` — success |
 
-Both branches are based on the current `main` commit and are 0 commits behind it. PR #9's comparison against PR #8 confirms its 22-commit delta contains the security-remediation workflow, migration, tests and audit documentation.
+PR #8 is merged. PR #9 has been retargeted to `main`; its resulting diff contains only seven security-remediation workflow, audit-documentation, migration and SQL-test files. GitHub reports the PR as mergeable and clean. The latest test workflow associated with its head commit completed successfully.
 
 **Review-record note:** GitHub currently shows no submitted formal PR reviews or inline review threads on either PR. The present assessment is a repository/code inspection plus automated CI evidence; it should not be described as an independent external review.
 
@@ -86,7 +86,7 @@ On 11 November 2026, the user confirmed these Supabase Authentication URL settin
 
 These URL values are user-confirmed, not independently re-read by the verification connection.
 
-The public GitHub Pages demo storefront is live. The `/admin/` route is not yet deployed because PR #8 is unmerged.
+The public GitHub Pages demo storefront and `/admin/` route are deployed. The Pages deployment workflow triggered by the PR #8 merge completed successfully on 12 November 2026. The user has opened the admin application and confirmed it displays.
 
 ## Hosted database and deployment status
 
@@ -95,7 +95,8 @@ The public GitHub Pages demo storefront is live. The `/admin/` route is not yet 
 - PR #9's owner-uniqueness/public-view migration has not been applied to hosted Supabase.
 - No owner invitation has been sent.
 - No real business/customer data has been added.
-- Neither PR has been merged to `main`; no new GitHub Pages deployment has been triggered.
+- PR #8 has been merged and the Pages deployment succeeded. PR #9 remains unmerged.
+- The PR #8 platform-publication migration and PR #9 owner-uniqueness/public-view migration have not been applied to hosted Supabase.
 - No paid service has been configured.
 
 ## Remaining go-live blockers
@@ -112,10 +113,10 @@ The public GitHub Pages demo storefront is live. The `/admin/` route is not yet 
 
 ## Recommended next sequence
 
-1. Complete the owner's review/decision on PR #8. Do not merge it without explicit approval; merging will trigger a GitHub Pages deployment of the owner-admin route and must be treated as a separately approved release action.
-2. After PR #8 is approved and merged, retarget PR #9 from the feature branch to `main`, confirm its diff contains only the security-remediation changes, and request the owner's review/approval.
-3. Only after explicit approval, apply the PR #8 and PR #9 pending migrations to the hosted development database in order. Then verify grants, indexes, Supabase advisors and live REST behaviour.
+1. Complete the independent review of PR #9's seven-file security-remediation diff and resolve any findings.
+2. Present PR #9 for the owner's explicit merge decision. Do not merge without approval.
+3. Only after separate explicit approval, apply the PR #8 and PR #9 pending migrations to the hosted development database in order. Then verify grants, indexes, Supabase advisors and live REST behaviour.
 4. Complete invitation/recovery and authenticated browser/API tests before creating any real owner membership or business data.
 5. Build and test the platform-admin publication workflow and remaining go-live capabilities before onboarding real businesses.
 
-**Current recommendation:** The code and CI evidence are ready for the owner's review of the two draft PRs, but not for production use. Do not merge, deploy, apply hosted migrations or onboard owners automatically.
+**Current recommendation:** PR #8's owner-admin foundation is deployed for inspection. PR #9's isolated security changes are ready for final code review, but not for production use. Do not merge PR #9, apply hosted migrations or onboard owners automatically.
