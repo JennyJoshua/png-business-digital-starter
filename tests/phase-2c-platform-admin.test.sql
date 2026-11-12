@@ -53,6 +53,18 @@ end;
 $$;
 reset role;
 
+-- Resolve fixture UUIDs as the database test operator, before switching to the API role.
+select set_config('test.phase2c.business_id',
+  (select id::text from app_private.businesses where business_id='test-business-b'),false);
+select set_config('test.phase2c.category_id',
+  (select id::text from app_private.categories
+   where business_id=(select id from app_private.businesses where business_id='test-business-b')
+     and category_id='seed-category'),false);
+select set_config('test.phase2c.listing_id',
+  (select id::text from app_private.listings
+   where business_id=(select id from app_private.businesses where business_id='test-business-b')
+     and listing_id='seed-listing'),false);
+
 -- Allowlisted platform administrator can review and publish across tenants.
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000003',false);
@@ -68,11 +80,9 @@ begin
     raise exception 'platform administrator queue did not return expected records';
   end if;
 
-  select id into business_id_value from app_private.businesses where business_id='test-business-b';
-  select id into category_id_value from app_private.categories
-    where business_id=business_id_value and category_id='seed-category';
-  select id into listing_id_value from app_private.listings
-    where business_id=business_id_value and listing_id='seed-listing';
+  business_id_value := current_setting('test.phase2c.business_id')::uuid;
+  category_id_value := current_setting('test.phase2c.category_id')::uuid;
+  listing_id_value := current_setting('test.phase2c.listing_id')::uuid;
 
   perform admin_api.set_publication_status('business',business_id_value,'published','Business details reviewed');
   perform admin_api.set_publication_status('category',category_id_value,'published','Category reviewed');
