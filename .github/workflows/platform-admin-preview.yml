@@ -1,0 +1,52 @@
+name: Platform-admin visual preview
+
+on:
+  push:
+    branches:
+      - "phase-2c/platform-admin-console"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Install dependencies and build demo storefront
+        run: |
+          npm run build:examples
+          test -f dist-examples/hardware-supplier/platform-admin/index.html
+          test -f dist-examples/hardware-supplier/platform-admin/platform-admin.css
+
+      - name: Install Chromium for mobile screenshot
+        run: |
+          npx --yes playwright install --with-deps chromium
+
+      - name: Capture mobile and desktop interface screenshots
+        run: |
+          python3 -m http.server 4173 --directory dist-examples/hardware-supplier >/tmp/pbds-preview-server.log 2>&1 &
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:4173/platform-admin/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npx --yes playwright screenshot --browser chromium --viewport-size="390,844" --full-page http://127.0.0.1:4173/platform-admin/ platform-admin-mobile.png
+          npx --yes playwright screenshot --browser chromium --viewport-size="1440,1000" --full-page http://127.0.0.1:4173/platform-admin/ platform-admin-desktop.png
+
+      - name: Upload preview package
+        uses: actions/upload-artifact@v4
+        with:
+          name: platform-admin-visual-preview
+          path: |
+            platform-admin-mobile.png
+            platform-admin-desktop.png
+            dist-examples/hardware-supplier/platform-admin/
+          retention-days: 7

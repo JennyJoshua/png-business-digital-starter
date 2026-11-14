@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - "phase-2b/**"
+      - "phase-2c/**"
   push:
     branches:
       - main
       - "phase-2b/**"
+      - "phase-2c/**"
 
 permissions:
   contents: read
@@ -38,8 +40,10 @@ jobs:
         with:
           node-version: 20
 
-      - name: Check owner admin JavaScript syntax
-        run: node --check admin/admin.js
+      - name: Check admin JavaScript syntax
+        run: |
+          node --check admin/admin.js
+          node --check platform-admin/platform-admin.js
 
       - name: Run automated tests
         run: npm test
@@ -48,7 +52,10 @@ jobs:
         run: npm run validate
 
       - name: Build all demonstration storefronts
-        run: npm run build:examples
+        run: |
+          npm run build:examples
+          test -f dist-examples/hardware-supplier/platform-admin/index.html
+          test -f dist-examples/hardware-supplier/platform-admin/platform-admin.js
 
       - name: Install PostgreSQL client
         run: |
@@ -72,3 +79,12 @@ jobs:
           PGPASSWORD: postgres
           PGDATABASE: pbds_test
         run: psql -v ON_ERROR_STOP=1 -f tests/phase-2b-security-remediation.test.sql
+
+      - name: Test platform-admin authorization and audit controls
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: pbds_test
+        run: psql -v ON_ERROR_STOP=1 -f tests/phase-2c-platform-admin.test.sql

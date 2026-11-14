@@ -2,7 +2,9 @@
 
 **Review date:** 12 November 2026  
 **Repository:** `JennyJoshua/png-business-digital-starter`  
-**Review status:** PR #8 has been merged and its GitHub Pages deployment workflow completed successfully. PR #9 remains a draft, open and unmerged. Hosted database rollout remains approval-gated.
+**Review status:** Historical snapshot from before PR #9 was merged. The status statements and sequence below describe the state at the time of this review, not the current repository state.
+
+**Current update (12 November 2026):** PR #9 has since been merged into `main` as `5d5f665032ea11595b87c60ee92888b29a66f3a2`; post-merge PostgreSQL 17 tests and GitHub Pages deployment passed. Phase 2C platform-admin implementation is tracked separately in Issue #10 and its feature-branch handover. Hosted Supabase migrations remain unapplied and approval-gated.
 
 ## Executive result
 
@@ -14,7 +16,7 @@ The review addressed a public category/listing RLS permission defect and added p
 
 This is not a go-live approval or an independent third-party penetration test. Real browser authentication, invitation delivery, platform-admin publishing workflow, Storage policies, audit trail, public data synchronization and production operations remain incomplete.
 
-## Current pull request and CI status
+## Pull request and CI status at the time of this historical review
 
 | PR | Scope | Current state | Latest CI |
 |---|---|---|---|
@@ -111,7 +113,7 @@ The public GitHub Pages demo storefront and `/admin/` route are deployed. The Pa
 8. **Password policy:** confirm/enforce the minimum password policy server-side; a client-side length check is not a security boundary.
 9. **Operational readiness:** review hosting, backups, monitoring, data retention, recovery and costs separately. The current Free development project is not approved for live customer operations.
 
-## Recommended next sequence
+## Recommended next sequence at the time of this historical review
 
 1. Complete the independent review of PR #9's seven-file security-remediation diff and resolve any findings.
 2. Present PR #9 for the owner's explicit merge decision. Do not merge without approval.
