@@ -126,12 +126,43 @@ $("#signin-form").addEventListener("submit", async event => {
   await enterAdmin();
 });
 async function enterAdmin() {
-  const { data: { user } } = await supabase.auth.getUser();
-  currentUser = user;
-  $("#signed-in-email").textContent = user?.email || "";
-  authPanel.hidden = true;
-  appPanel.hidden = false;
-  await loadQueue();
+  // Do not reveal the administration interface until the database confirms
+  // that this signed-in identity is allowlisted as a platform administrator.
+  showMessage($("#auth-message"), "Verifying platform administrator access…");
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw userError || new Error("Your session could not be verified. Please sign in again.");
+
+    const { data, error } = await db.rpc("platform_admin_queue");
+    if (error) {
+      if (/Platform administrator access required|42501/i.test(error.message || "")) {
+        await supabase.auth.signOut();
+        currentUser = null;
+        queueItems = [];
+        authPanel.hidden = false;
+        appPanel.hidden = true;
+        showMessage($("#auth-message"), "This account is not authorised as a platform administrator. Please use an approved administrator account.");
+        return;
+      }
+      throw error;
+    }
+
+    currentUser = user;
+    queueItems = Array.isArray(data) ? data : [];
+    $("#signed-in-email").textContent = user.email || "";
+    renderQueue();
+    showMessage($("#app-message"), "");
+    showMessage($("#auth-message"), "");
+    authPanel.hidden = true;
+    appPanel.hidden = false;
+  } catch (error) {
+    // Keep the private panel hidden on API, configuration or network failures.
+    currentUser = null;
+    queueItems = [];
+    authPanel.hidden = false;
+    appPanel.hidden = true;
+    showMessage($("#auth-message"), friendlyError(error));
+  }
 }
 supabase.auth.onAuthStateChange((event) => {
   if (event === "SIGNED_OUT") {
